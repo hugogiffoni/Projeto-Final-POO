@@ -132,4 +132,15 @@ class Database:
         self.connection.executescript(sql_script)
         self.connection.commit() # Commit automático para garantir persistência
 
-        
+    # -----------------------------------------------------------------
+    # Suporte a Context Manager (permite usar 'with Database() as db:')
+    # -----------------------------------------------------------------
+
+    def __enter__(self) -> "Database":
+        """Permite usar a classe com o statement 'with' (abre a ligação)."""
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Fecha a ligação automaticamente ao sair do bloco 'with'."""
+        self.close()    
