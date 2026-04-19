@@ -99,4 +99,20 @@ class Database:
         row = cursor.fetchone()
         return dict(row) if row else None
     
-    
+    def fetch_all(self, query: str, params: tuple = ()) -> list[dict[str, Any]]:
+        """
+        Executa uma query SELECT e retorna TODAS as linhas como lista de dicionários.
+
+        Args:
+            query: A instrução SELECT.
+            params: Parâmetros para a query.
+
+        Returns:
+            Lista de dicionários (vazia se não houver resultados).
+        """
+        if self.connection is None:
+            raise RuntimeError("Base de dados não esta conectada.")
+        
+        cursor = self.connection.execute(query, params)
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
