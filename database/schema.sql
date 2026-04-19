@@ -47,3 +47,24 @@ CREATE TABLE IF NOT EXISTS criadores (
     id_criador INTEGER PRIMARY KEY AUTOINCREMENT,
     nome       TEXT    NOT NULL UNIQUE
 );
+
+-- ---------------------------------------------------------------------
+-- Tabela: jogos
+-- Catálogo de jogos de tabuleiro disponíveis para venda
+-- Usa FKs para género, editora e criador (normalização)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS jogos (
+    id_jogo         INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo          TEXT    NOT NULL,
+    id_criador      INTEGER,
+    id_editora      INTEGER,
+    id_genero       INTEGER,
+    ano_lancamento  INTEGER,
+    idade_minima    INTEGER DEFAULT 0,
+    preco           REAL    NOT NULL CHECK (preco >= 0),
+    stock           INTEGER DEFAULT 0 CHECK (stock >= 0),
+
+    FOREIGN KEY (id_criador) REFERENCES criadores(id_criador) ON DELETE SET NULL,
+    FOREIGN KEY (id_editora) REFERENCES editoras(id_editora) ON DELETE SET NULL,
+    FOREIGN KEY (id_genero)  REFERENCES generos(id_genero)   ON DELETE SET NULL
+);
