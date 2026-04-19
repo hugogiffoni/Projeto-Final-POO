@@ -47,3 +47,12 @@ class Database:
         self.connection.row_factory = sqlite3.Row # Configura para retornar linhas como Row (permite acesso pelo nome) row["nome"]
 
         return self.connection
+    
+    def close(self) -> None:
+        """
+        Fecha a ligacao a base de dados, se estiver aberta.
+        """
+        if self.connection is not None:
+            self.connection.close()
+            self.connection = None
+            
