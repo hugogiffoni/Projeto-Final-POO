@@ -80,3 +80,23 @@ class Database:
        except sqlite3.Error as e:
            self.connection.rollback() # Rollback automático em caso de erro
            raise e
+    
+    def fetch_one(self, query: str, params: tuple = ()) -> Optional[dict[str, Any]]:
+        """
+        Executa uma query SELECT e retorna UMA linha como dicionário.
+
+        Args:
+            query: A instrução SELECT.
+            params: Parâmetros para a query.
+
+        Returns:
+            dict com os dados da linha, ou None se não houver resultados.
+        """
+        if self.connection is None:
+            raise RuntimeError("Base de dados não esta conectada.")
+        
+        cursor = self.connection.execute(query, params)
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    
+    
