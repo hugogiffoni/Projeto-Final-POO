@@ -1,0 +1,31 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ===== Ambiente virtual =====
+venv/
+env/
+ENV/
+
+# ===== Base de dados =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== VS Code =====
+.vscode/
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Ficheiros de ambiente =====
+.env
+*.env
+
+# ===== Logs =====
+*.log
