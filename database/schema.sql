@@ -29,3 +29,21 @@ CREATE TABLE IF NOT EXISTS generos (
     id_genero  INTEGER PRIMARY KEY AUTOINCREMENT,
     nome       TEXT    NOT NULL UNIQUE
 );
+
+-- ---------------------------------------------------------------------
+-- Tabela: editoras
+-- Catálogo de editoras de jogos (Devir, Asmodee, etc.)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS editoras (
+    id_editora  INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome        TEXT    NOT NULL UNIQUE
+);
+
+-- ---------------------------------------------------------------------
+-- Tabela: criadores
+-- Catálogo de autores/designer de jogos
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS criadores (
+    id_criador INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome       TEXT    NOT NULL UNIQUE
+);
