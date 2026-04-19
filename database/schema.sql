@@ -99,3 +99,12 @@ CREATE TABLE IF NOT EXISTS itens_venda (
     FOREIGN KEY (id_venda) REFERENCES vendas(id_venda) ON DELETE CASCADE,
     FOREIGN KEY (id_jogo)  REFERENCES jogos(id_jogo)   ON DELETE RESTRICT
 );
+
+-- ---------------------------------------------------------------------
+-- Índices para otimização de consultas frequentes
+-- ---------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_vendas_cliente   ON vendas(id_cliente);
+CREATE INDEX IF NOT EXISTS idx_itens_venda      ON itens_venda(id_venda);
+CREATE INDEX IF NOT EXISTS idx_itens_jogo       ON itens_venda(id_jogo);
+CREATE INDEX IF NOT EXISTS idx_jogos_titulo     ON jogos(titulo);
+CREATE INDEX IF NOT EXISTS idx_clientes_email   ON clientes(email);
