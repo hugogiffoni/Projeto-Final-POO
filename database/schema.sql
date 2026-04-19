@@ -68,3 +68,34 @@ CREATE TABLE IF NOT EXISTS jogos (
     FOREIGN KEY (id_editora) REFERENCES editoras(id_editora) ON DELETE SET NULL,
     FOREIGN KEY (id_genero)  REFERENCES generos(id_genero)   ON DELETE SET NULL
 );
+
+-- ---------------------------------------------------------------------
+-- Tabela: vendas
+-- Cabeçalho de cada venda (encomenda do cliente)
+-- Os jogos da venda ficam na tabela 'itens_venda'
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS vendas (
+    id_venda     INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_cliente   INTEGER NOT NULL,
+    data_hora    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    desconto     REAL    DEFAULT 0 CHECK (desconto >= 0 AND desconto <= 100),
+    valor_total  REAL    NOT NULL CHECK (valor_total >= 0),
+
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE RESTRICT
+);
+
+-- ---------------------------------------------------------------------
+-- Tabela: itens_venda
+-- Linhas de cada venda: que jogos foram comprados e em que quantidade
+-- Permite múltiplos jogos por venda (carrinho de compras)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS itens_venda (
+    id_item         INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_venda        INTEGER NOT NULL,
+    id_jogo         INTEGER NOT NULL,
+    quantidade      INTEGER NOT NULL CHECK (quantidade > 0),
+    preco_unitario  REAL    NOT NULL CHECK (preco_unitario >= 0),
+
+    FOREIGN KEY (id_venda) REFERENCES vendas(id_venda) ON DELETE CASCADE,
+    FOREIGN KEY (id_jogo)  REFERENCES jogos(id_jogo)   ON DELETE RESTRICT
+);
