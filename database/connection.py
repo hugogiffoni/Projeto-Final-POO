@@ -116,3 +116,20 @@ class Database:
         cursor = self.connection.execute(query, params)
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
+    
+    def execute_script(self, sql_script: str) -> None:
+        """
+        Executa um script SQL completo (várias instruções separadas por ';').
+
+        Usado principalmente para criar o schema a partir do ficheiro schema.sql.
+
+        Args:
+            sql_script: String contendo um ou mais comandos SQL.
+        """ 
+        if self.connection is None:
+            raise RuntimeError("Base de dados não esta conectada.")
+        
+        self.connection.executescript(sql_script)
+        self.connection.commit() # Commit automático para garantir persistência
+
+        
