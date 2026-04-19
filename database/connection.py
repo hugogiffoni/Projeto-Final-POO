@@ -55,4 +55,28 @@ class Database:
         if self.connection is not None:
             self.connection.close()
             self.connection = None
-            
+
+    def execute(self, query: str, params: tuple = ()) -> sqlite3.Cursor:
+       """
+        Executa uma query SQL (INSERT, UPDATE, DELETE) com commit automático.
+
+        Args:
+            query: A instrução SQL a executar.
+            params: Parâmetros para substituir os '?' na query (evita SQL injection).
+
+        Returns:
+            sqlite3.Cursor: Cursor com o resultado da execução.
+
+        Raises:
+            sqlite3.Error: Se a execução falhar (faz rollback automático).
+        """
+       if self.connection is None:
+           raise RuntimeError("Conexão à base de dados não estabelecida. Chame connect() primeiro.")
+       
+       try:
+           cursor = self.connection.execute(query, params)
+           self.connection.commit() # Commit automático para garantir persistência
+           return cursor
+       except sqlite3.Error as e:
+           self.connection.rollback() # Rollback automático em caso de erro
+           raise e
