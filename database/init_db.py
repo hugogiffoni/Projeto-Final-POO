@@ -24,3 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent
 # Caminhos para os ficheiros
 SCHEMA_FILE = BASE_DIR / "schema.sql"
 DB_FILE = BASE_DIR / "loja_jogos.db"
+
+def read_schema() -> str:
+    """
+    Lê o conteúdo do ficheiro schema.sql.
+
+    Returns:
+        str: Todo o conteúdo SQL como texto.
+
+    Raises:
+        FileNotFoundError: Se schema.sql não existir.
+    """
+    if not SCHEMA_FILE.exists():
+        raise FileNotFoundError(f"Ficheiro de esquema não encontrado: {SCHEMA_FILE}")
+    
+    return SCHEMA_FILE.read_text(encoding="utf-8")
