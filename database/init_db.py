@@ -39,3 +39,28 @@ def read_schema() -> str:
         raise FileNotFoundError(f"Ficheiro de esquema não encontrado: {SCHEMA_FILE}")
     
     return SCHEMA_FILE.read_text(encoding="utf-8")
+
+def init_database(reset: bool = False) -> None:
+    """
+    Inicializa a base de dados executando o schema.sql.
+
+    Args:
+        reset: Se True, apaga a BD existente antes de criar. Default: False.
+    """
+    # Se reset=True, apaga o ficheiro .db existente
+    if reset and DB_FILE.exists():
+        print(f"Apagando a base de dados existente: {DB_FILE.name}")
+        DB_FILE.unlink()  # Apaga o ficheiro
+
+    # Lê o esquema SQL
+    print(f"Lendo esquema SQL de: {SCHEMA_FILE.name}")
+    schema_sql = read_schema()
+
+    # Usa a classe Database com context manager
+    print(f"Criando/Atualizando a base de dados: {DB_FILE.name}")
+    with Database(str(DB_FILE)) as db:
+        cursor = db.execute(schema_sql)  # Executa o esquema SQL
+
+    print("Base de dados inicializada com sucesso.")
+    print(f"Localização da BD: {DB_FILE}")
+
