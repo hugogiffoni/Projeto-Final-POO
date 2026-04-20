@@ -59,7 +59,7 @@ def init_database(reset: bool = False) -> None:
     # Usa a classe Database com context manager
     print(f"Criando/Atualizando a base de dados: {DB_FILE.name}")
     with Database(str(DB_FILE)) as db:
-        cursor = db.execute(schema_sql)  # Executa o esquema SQL
+        cursor = db.execute_script(schema_sql)  # Executa o esquema SQL
 
     print("Base de dados inicializada com sucesso.")
     print(f"Localização da BD: {DB_FILE}")
