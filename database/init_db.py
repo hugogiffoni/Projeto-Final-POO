@@ -64,3 +64,19 @@ def init_database(reset: bool = False) -> None:
     print("Base de dados inicializada com sucesso.")
     print(f"Localização da BD: {DB_FILE}")
 
+def list_tables() -> None:
+    """
+    Lista todas as tabelas criadas na base de dados.
+
+    Útil para verificar que a inicialização correu bem.
+    """
+    with Database(str(DB_FILE)) as db:
+        tables = db.fetch_all("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
+
+    if not tables:
+        print("Nenhuma tabela encontrada na base de dados.")
+        return
+
+    print("\nTabelas encontradas na base de dados:")
+    for table in tables:
+        print(f" - {table['name']}")
