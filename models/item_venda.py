@@ -133,3 +133,34 @@ class ItemVenda:
         """
         return round(self.preco_unitario * self.quantidade, 2)
     
+    # Serialização
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ItemVenda":
+        """Cria um ItemVenda a partir de um dict (linha da BD ou JSON) """
+        # Se vier um dict 'jogo' aninhado, cria o objeto Jogo
+        jogo_obj = None
+        if data.get("jogo"):
+            jogo_obj = Jogo.from_dict(data["jogo"])
+
+        return cls(
+            id_item=data.get("id_item"),
+            id_venda=data.get("id_venda"),
+            id_jogo=data["id_jogo"],
+            quantidade=data["quantidade"],
+            preco_unitario=data["preco_unitario"],
+            jogo=jogo_obj,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Converte o ItemVenda para um dict (útil para JSON)."""
+        return {
+            "id_item": self.id_item,
+            "id_venda": self.id_venda,
+            "id_jogo": self.id_jogo,
+            "quantidade": self.quantidade,
+            "preco_unitario": self.preco_unitario,
+            "jogo": self.jogo.to_dict() if self.jogo else None,  # inclui dados do jogo se disponível
+        }
+    
+        
