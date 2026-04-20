@@ -40,4 +40,37 @@ class ItemVenda:
         self.quantidade = quantidade  # usa setter (validação)
         self.preco_unitario = preco_unitario  # usa setter (validação)
         self.jogo = jogo  # pode ser None ou um objeto Jogo completo
+
+    # Factory method: criar ItemVenda a partir de um Jogo
+
+    def a_partir_de_jogo(cls, jogo: Jogo, quantidade: int) -> "ItemVenda":
+        """
+        Cria um ItemVenda a partir de um objeto Jogo.
+
+        O preço unitário é "congelado" no preço atual do jogo.
+        Útil na GUI quando o utilizador adiciona um jogo ao carrinho.
+
+        Args:
+            jogo: Objeto Jogo a adicionar.
+            quantidade: Quantidade desejada.
+
+        Returns:
+            Nova instância de ItemVenda.
+
+        Raises:
+            ValueError: Se o jogo não tiver ID ou stock insuficiente.
+        """
+        if jogo.id_jogo is None:
+            raise ValueError("O jogo precisa de estar guardado na BD (ter id_jogo)")
+        if not jogo.tem_stock(quantidade):
+            raise ValueError(
+                f"Stock insuficiente para '{jogo.titulo}' "  
+                f"(pedido: {quantidade}, disponível: {jogo.stock})" 
+            )  
+        return cls(
+            id_jogo=jogo.id_jogo,
+            quantidade=quantidade,
+            preco_unitario=jogo.preco,
+            jogo=jogo,
+        )
     
