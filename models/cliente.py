@@ -41,6 +41,32 @@ class Cliente:
         self.telefone = telefone
         self.data_registo = data_registo
 
-    # Properties (Encapsulamento + Validação)       
+    # Properties (Encapsulamento + Validação)    
+
+    @property
+    def id_cliente(self) -> Optional[int]:
+        #ID do cliente (read-only, gerado pela BD)
+        return self._id_cliente   
+
+    @property
+    def nome(self) -> str:
+        return self._nome
     
-     
+    @nome.setter
+    def nome(self, valor: str) -> None:
+        if not valor or not valor.strip():
+            raise ValueError("O nome do cliente não pode ser vazio.")
+        self._nome = valor.strip()
+
+    @property
+    def email(self) -> Optional[str]:
+        return self._email
+
+    @email.setter
+    def email(self, valor: Optional[str]) -> None:
+        if valor is not None and valor.strip():
+            if not self._EMAIL_REGEX.match(valor.strip()):
+                raise ValueError(f"Email inválido: '{valor!r}'")
+            self._email = valor.strip().lower()
+        else:
+            self._email = None  # Permite email ser None ou string vazia (tratada como None)
