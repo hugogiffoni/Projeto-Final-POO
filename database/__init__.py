@@ -1,0 +1,1 @@
+"""Pacote de gestão da base de dados."""
