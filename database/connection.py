@@ -27,7 +27,7 @@ class Database:
     def __init__(self, db_path: str = "database/loja_jogos.db") -> None:
         self.db_path = Path(db_path)
         self.connection: Optional[sqlite3.Connection] = None
-    def connect(self) -> sqlite3.connection:
+    def connect(self) -> sqlite3.Connection:
         """
         Abre uma ligação à base de dados.
 
