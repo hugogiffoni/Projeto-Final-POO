@@ -116,4 +116,20 @@ class Cliente:
             data_registo=data.get("data_registo"),
         )
     
-    
+    # Serializaçâo 
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Converte o objeto num dicionário (útil para JSON no Flask).
+
+        Returns:
+            Dicionário com todos os atributos do cliente.
+        """
+        return {
+            "id_cliente": self.id_cliente,
+            "nome": self.nome,
+            "email": self.email,
+            "morada": self.morada,
+            "telefone": self.telefone,
+            "data_registo": self.data_registo,
+        }
