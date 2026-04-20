@@ -40,3 +40,7 @@ class Cliente:
         self.morada = morada
         self.telefone = telefone
         self.data_registo = data_registo
+
+    # Properties (Encapsulamento + Validação)       
+    
+     
