@@ -121,3 +121,16 @@ class Jogo:
     @property
     def genero(self) -> Optional[str]:
         return self._genero           
+    
+   # Metodos de Negocio
+
+    def tem_stock(self, quantidade: int = 1) -> bool:
+        """Verifica se há stock suficiente para a quantidade desejada/pedida."""
+        return self.stock >= quantidade 
+    
+    def calcular_subtotal(self, quantidade: int) -> float:
+        """Calcula o subtotal para uma dada quantidade (sem desconto)"""
+        if quantidade < 1:
+            raise ValueError("A quantidade deve ser pelo menos 1.")
+        return round(self.preco * quantidade, 2)
+    
