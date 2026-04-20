@@ -98,3 +98,26 @@ class Jogo:
             self._ano_lancamento = valor  
         else:
             self._ano_lancamento = None   
+
+    @property
+    def idade_minima(self) -> int:
+        return self._idade_minima
+
+    @idade_minima.setter
+    def idade_minima(self, valor: int) -> None:
+        idade = int(valor) if valor is not None else 0
+        if idade < 0:
+            raise ValueError("A idade mínima não pode ser negativa.")
+        self._idade_minima = idade
+
+    @property
+    def criador(self) -> Optional[str]:
+        return self._criador
+
+    @property
+    def editora(self) -> Optional[str]:
+        return self._editora
+
+    @property
+    def genero(self) -> Optional[str]:
+        return self._genero           
