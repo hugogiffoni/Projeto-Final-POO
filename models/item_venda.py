@@ -74,3 +74,52 @@ class ItemVenda:
             jogo=jogo,
         )
     
+    
+    # Properties com validação
+
+    @property
+    def id_item(self) -> Optional[int]:
+        #ID do item (read-only, gerado pela BD)
+        return self._id_item
+    
+    @property
+    def id_venda(self) -> Optional[int]:
+        return self._id_venda
+    
+    @id_venda.setter
+    def id_venda(self, valor: Optional[int]) -> None:
+        """setter puplico - usado pela Venda ao guardar no BD"""
+        self._id_venda = valor
+
+    @property
+    def id_jogo(self) -> int:
+        return self._id_jogo
+
+    @property
+    def quantidade(self) -> int:
+        return self._quantidade
+
+    @quantidade.setter
+    def quantidade(self, valor: int) -> None:
+        qtd = int(valor) if valor is not None else 0
+        if qtd < 1:
+            raise ValueError("A quantidade deve ser pelo menos 1.") 
+        self._quantidade = qtd
+
+    @property
+    def preco_unitario(self) -> float:
+        return self._preco_unitario
+
+    @preco_unitario.setter
+    def preco_unitario(self, valor: float) -> None:
+        if valor is None or float(valor) < 0:
+            raise ValueError("O preço unitário não pode ser negativo.")
+        self._preco_unitario = float(valor)       
+
+    @property
+    def jogo(self) -> Optional[Jogo]:
+        """Objeto Jogo associado (opcional, pode ser None se nao foi carregado)."""
+        return self._jogo    
+    
+
+    
