@@ -80,3 +80,14 @@ def list_tables() -> None:
     print("\nTabelas encontradas na base de dados:")
     for table in tables:
         print(f" - {table['name']}")
+
+if __name__ == "__main__":
+    # Verifica se o utilizador passou --reset foi passado
+    reset_flag = "--reset" in sys.argv
+
+    try:
+        init_database(reset=reset_flag)
+        list_tables()   
+    except Exception as e:
+        print(f"Erro ao inicializar a base de dados: {e}")
+        sys.exit(1)         
