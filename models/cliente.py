@@ -91,4 +91,29 @@ class Cliente:
     def data_registo(self) -> Optional[str]:
         #Data de registo do cliente (read-only, gerada pela BD)
         return self._data_registo
-        
+
+    # Factory Methods (formas alternativas de criar Cliente)
+
+    @classmethod  
+    def from_dict(cls, data: dict[str, Any]) -> "Cliente":
+        """
+        Cria um Cliente a partir de um dicionário.
+
+        Útil para converter linhas da BD ou payloads JSON em objetos.
+
+        Args:
+            data: Dicionário com as chaves das colunas da tabela.
+
+        Returns:
+            Nova instância de Cliente.
+        """
+        return cls(
+            id_cliente=data.get("id_cliente"),
+            nome=data["nome"],  # nome é obrigatório
+            email=data.get("email"),
+            morada=data.get("morada"),
+            telefone=data.get("telefone"),
+            data_registo=data.get("data_registo"),
+        )
+    
+    
