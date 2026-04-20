@@ -134,3 +134,33 @@ class Jogo:
             raise ValueError("A quantidade deve ser pelo menos 1.")
         return round(self.preco * quantidade, 2)
     
+    # Serialização
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Jogo":
+        """Cria um jogo a partir de um dict (linha da BD ou JSON)."""
+        return cls(
+            id_jogo=data.get("id_jogo"),
+            titulo=data["titulo"],
+            preco=data["preco"],
+            stock=data.get("stock", 0),
+            criador=data.get("criador"),
+            editora=data.get("editora"),
+            genero=data.get("genero"),
+            ano_lancamento=data.get("ano_lancamento"),
+            idade_minima=data.get("idade_minima", 0),
+        )
+    
+    def to_dict(self) -> dict[str, Any]:
+        """Converte o objeto Jogo para um dict (util para JSON)."""
+        return {
+            "id_jogo": self.id_jogo,
+            "titulo": self.titulo,
+            "preco": self.preco,
+            "stock": self.stock,
+            "criador": self.criador,
+            "editora": self.editora,
+            "genero": self.genero,
+            "ano_lancamento": self.ano_lancamento,
+            "idade_minima": self.idade_minima,
+        }
