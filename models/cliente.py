@@ -70,3 +70,25 @@ class Cliente:
             self._email = valor.strip().lower()
         else:
             self._email = None  # Permite email ser None ou string vazia (tratada como None)
+    
+    @property
+    def morada(self) -> Optional[str]:
+        return self._morada
+    
+    @morada.setter
+    def morada(self, valor: Optional[str]) -> None:
+        self._morada = valor.strip() if valor else None
+
+    @property
+    def telefone(self) -> Optional[str]:
+        return self._telefone
+    
+    @telefone.setter
+    def telefone(self, valor: Optional[str]) -> None:
+        self._telefone = valor.strip() if valor else None
+
+    @property
+    def data_registo(self) -> Optional[str]:
+        #Data de registo do cliente (read-only, gerada pela BD)
+        return self._data_registo
+        
