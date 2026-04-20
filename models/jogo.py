@@ -164,3 +164,22 @@ class Jogo:
             "ano_lancamento": self.ano_lancamento,
             "idade_minima": self.idade_minima,
         }
+
+    # Dunder methods
+
+    def __str__(self) -> str:
+        return f"{self._titulo} ({self._ano_lancamento or '-'}) - €{self._preco:.2f}€"
+    
+    def __repr__(self) -> str:
+        return (
+            f"Jogo(id_jogo={self._id_jogo!r}, titulo={self._titulo!r},"
+            f" preco={self._preco!r},"
+        )
+    
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Jogo):
+            return NotImplemented
+        if self.id_jogo is not None and other.id_jogo is not None:
+            return self.id_jogo == other.id_jogo
+        return self.titulo == other.titulo
+    
