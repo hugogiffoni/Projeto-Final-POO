@@ -162,5 +162,19 @@ class ItemVenda:
             "preco_unitario": self.preco_unitario,
             "jogo": self.jogo.to_dict() if self.jogo else None,  # inclui dados do jogo se disponível
         }
+
+    # Dunder methods 
+
+    def __str__(self) -> str:
+        titulo = self._jogo.titulo if self._jogo else f"Jogo #{self._id_jogo}"
+        return (
+            f"{titulo} x {self.quantidade} "
+            f"@ €{self._preco_unitario:.2f} = €{self.subtotal():.2f}"
+        )   
     
-        
+    def __repr__(self) -> str:
+        return (
+            f"ItemVenda(id_jogo={self._id_jogo}, "
+            f"quantidade={self._quantidade}, "
+            f"preco_unitario={self._preco_unitario})"
+        )
