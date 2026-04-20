@@ -47,3 +47,54 @@ class Jogo:
         self.genero = genero
         self.ano_lancamento = ano_lancamento
         self.idade_minima = idade_minima  # usa setter (validação)
+
+    # Properties com validação
+
+    @property
+    def id_jogo(self) -> Optional[int]:
+        #ID do jogo (read-only, gerado pela BD)
+        return self._id_jogo
+
+    @property
+    def titulo(self) -> str:
+        return self._titulo
+
+    @titulo.setter
+    def titulo(self, valor: str) -> None:
+        if not valor or not valor.strip():
+            raise ValueError("O título do jogo não pode ser vazio.")
+        self._titulo = valor.strip()
+
+    @property
+    def preco(self) -> float:
+        return self._preco
+
+    @preco.setter
+    def preco(self, valor: float) -> None:
+        if valor is None or float(valor) < 0:
+            raise ValueError("O preço do jogo deve ser um número não negativo.")
+        self._preco = float(valor)  
+
+    @property
+    def stock(self) -> int:
+        return self._stock
+
+    @stock.setter
+    def stock(self, valor: int) -> None:
+        if valor is None or int(valor) < 0:
+            raise ValueError("O stock não pode ser um número negativo.")
+        self._stock = int(valor)     
+
+    @property
+    def ano_lancamento(self) -> Optional[int]:
+        return self._ano_lancamento
+
+    @ano_lancamento.setter
+    def ano_lancamento(self, valor: Optional[int]) -> None:
+        if valor is not None:
+            ano = int(valor)
+            if ano < 1800 or ano > 2100:
+                raise ValueError(f"O ano de lançamento invalido: {ano}.")   
+            self._ano_lancamento = valor  
+        else:
+            self._ano_lancamento = None   
