@@ -133,3 +133,23 @@ class Cliente:
             "telefone": self.telefone,
             "data_registo": self.data_registo,
         }
+    
+    # Duner Methods
+
+    def __str__(self) -> str:
+        return f"{self._nome} <{self._email or 'sem email'}>"
+    
+    def __repr__(self) -> str:
+        return (
+            f"Cliente(id_cliente={self.id_cliente!r}, nome={self.nome!r}, "
+            f"email={self.email!r}, morada={self.morada!r}, "
+        )
+    
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Cliente):
+            return NotImplemented
+        
+        # Dois clientes sao iguais se tiverem o mesmo ID(quando existem)
+        if self.id_cliente is not None and other.id_cliente is not None:
+            return self.id_cliente == other.id_cliente
+        return self._email == other.email and self.nome == other.nome
