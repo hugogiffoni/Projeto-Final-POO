@@ -122,4 +122,14 @@ class ItemVenda:
         return self._jogo    
     
 
+    # Métodos de negócio
+
+    def subtotal(self) -> float:
+        """
+        Calcula o subtotal desta linha (preço × quantidade).
+
+        Returns:
+            Subtotal arredondado a 2 casas decimais.
+        """
+        return round(self.preco_unitario * self.quantidade, 2)
     
