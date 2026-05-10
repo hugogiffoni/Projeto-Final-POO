@@ -99,4 +99,16 @@ def limpar_tabelas(db: Database) -> None:
         # Reset do AUTOINCREMENT
         db.execute(f"DELETE FROM sqlite_sequence WHERE name='{tabela}';")
     print("Tabelas limpas com sucesso.\n")
+
+# =====================================================================
+# FUNÇÕES DE INSERÇÃO
+# =====================================================================
+
+def inserir_catalogos(db: Database) -> tuple[dict, dict, dict]:
+    """
+    Insere géneros, criadores e editoras.
     
+    Returns:
+        Três dicts {nome: id} para mapeamento rápido nos jogos.
+    """
+    print("Inserindo géneros, criadores e editoras...")
