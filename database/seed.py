@@ -83,3 +83,7 @@ CLIENTES = [
     ("Gabriela Lopes",   "Rua Nova 15, Setúbal",            "978901234", "gabriela.lopes@email.pt"),
     ("Hugo Pereira",     "Travessa Antiga 6, Évora",        "989012345", "hugo.pereira@email.pt"),
 ]
+
+# =====================================================================
+# FUNÇÕES DE LIMPEZA
+# =====================================================================
