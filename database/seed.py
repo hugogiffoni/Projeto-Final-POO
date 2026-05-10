@@ -14,3 +14,33 @@ Ordem de inserção (respeita FKs):
     3. clientes                      (independente)
     4. vendas + itens_venda          (depende de clientes e jogos)
 """
+import sys
+from datetime import datetime, timedelta
+
+from database.connection import Database
+from database.init_db import DB_FILE
+
+# =====================================================================
+# DADOS DE TESTE
+# =====================================================================
+
+GENEROS = [
+    "Estratégia",
+    "Família",
+    "Party",
+    "Cooperativo",
+    "Eurogame",
+    "Cartas",
+    "Aventura",
+]
+
+CRIADORES = [
+    "Klaus Teuber",
+    "Reiner Knizia",
+    "Uwe Rosenberg",
+    "Vlaada Chvátil",
+    "Antoine Bauza",
+    "Bruno Cathala",
+    "Vital Lacerda",
+    "Stefan Feld",
+]
