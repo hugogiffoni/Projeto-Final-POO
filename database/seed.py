@@ -112,3 +112,24 @@ def inserir_catalogos(db: Database) -> tuple[dict, dict, dict]:
         Três dicts {nome: id} para mapeamento rápido nos jogos.
     """
     print("Inserindo géneros, criadores e editoras...")
+
+    generos_map = {}
+    for nome in GENEROS:
+        cursor = db.execute("INSERT INTO generos (nome) VALUES (?);", (nome,))
+        generos_map[nome] = cursor.lastrowid
+
+    criadores_map = {}
+    for nome in CRIADORES:
+        cursor = db.execute("INSERT INTO criadores (nome) VALUES (?);", (nome,))
+        criadores_map[nome] = cursor.lastrowid
+
+    editoras_map = {}
+    for nome in EDITORAS:
+        cursor = db.execute("INSERT INTO editoras (nome) VALUES (?);", (nome,))
+        editoras_map[nome] = cursor.lastrowid
+
+    print(f"  -> {len(generos_map)} géneros, "
+          f"{len(criadores_map)} criadores, "
+          f"{len(editoras_map)} editoras inseridos.\n")
+
+    return generos_map, criadores_map, editoras_map
