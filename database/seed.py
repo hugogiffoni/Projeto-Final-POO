@@ -221,3 +221,19 @@ def inserir_vendas_exemplo(db: Database, ids_clientes: list[int],
             )
 
     print(f"  -> {len(vendas_exemplo)} vendas inseridas.\n")
+
+    # =====================================================================
+# RESUMO FINAL
+# =====================================================================
+
+def mostrar_resumo(db: Database) -> None:
+    """Mostra contagem de registos em cada tabela."""
+    print("=" * 50)
+    print("RESUMO DA BASE DE DADOS")
+    print("=" * 50)
+    tabelas = ["generos", "criadores", "editoras", "jogos",
+               "clientes", "vendas", "itens_venda"]
+    for tabela in tabelas:
+        resultado = db.fetch_one(f"SELECT COUNT(*) AS total FROM {tabela};")
+        print(f"  {tabela:<15} -> {resultado['total']:>3} registos")
+    print("=" * 50)
