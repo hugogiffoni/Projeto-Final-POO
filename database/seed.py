@@ -151,3 +151,17 @@ def inserir_jogos(db: Database, generos_map: dict,
         ids_jogos.append(cursor.lastrowid)
     print(f"  -> {len(ids_jogos)} jogos inseridos.\n")
     return ids_jogos
+
+def inserir_clientes(db: Database) -> list[int]:
+    """Insere os clientes de teste."""
+    print("Inserindo clientes...")
+    ids_clientes = []
+    for nome, morada, telefone, email in CLIENTES:
+        cursor = db.execute(
+            """INSERT INTO clientes (nome, morada, telefone, email)
+               VALUES (?, ?, ?, ?);""",
+            (nome, morada, telefone, email)
+        )
+        ids_clientes.append(cursor.lastrowid)
+    print(f"  -> {len(ids_clientes)} clientes inseridos.\n")
+    return ids_clientes
