@@ -44,3 +44,11 @@ CRIADORES = [
     "Vital Lacerda",
     "Stefan Feld",
 ]
+
+EDITORAS = [
+    "Devir",
+    "Asmodee",
+    "Mebo Games",
+    "Z-Man Games",
+    "Days of Wonder",
+]
