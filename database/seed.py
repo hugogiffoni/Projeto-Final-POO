@@ -87,3 +87,16 @@ CLIENTES = [
 # =====================================================================
 # FUNÇÕES DE LIMPEZA
 # =====================================================================
+
+def limpar_tabelas(db: Database) -> None:
+    """Apaga todos os dados das tabelas (mantém estrutura)."""
+    print("Limpando tabelas existentes...")
+    # Ordem inversa por causa das FKs
+    tabelas = ["itens_venda", "vendas", "jogos", "clientes",
+               "criadores", "editoras", "generos"]
+    for tabela in tabelas:
+        db.execute(f"DELETE FROM {tabela};")
+        # Reset do AUTOINCREMENT
+        db.execute(f"DELETE FROM sqlite_sequence WHERE name='{tabela}';")
+    print("Tabelas limpas com sucesso.\n")
+    
