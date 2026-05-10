@@ -237,3 +237,33 @@ def mostrar_resumo(db: Database) -> None:
         resultado = db.fetch_one(f"SELECT COUNT(*) AS total FROM {tabela};")
         print(f"  {tabela:<15} -> {resultado['total']:>3} registos")
     print("=" * 50)
+
+# =====================================================================
+# FUNÇÃO PRINCIPAL
+# =====================================================================
+
+def seed_database(reset: bool = False) -> None:
+    """Executa todo o processo de povoamento."""
+    print("\nIniciando povoamento da base de dados...\n")
+
+    with Database(str(DB_FILE)) as db:
+        if reset:
+            limpar_tabelas(db)
+
+        generos_map, criadores_map, editoras_map = inserir_catalogos(db)
+        ids_jogos = inserir_jogos(db, generos_map, criadores_map, editoras_map)
+        ids_clientes = inserir_clientes(db)
+        inserir_vendas_exemplo(db, ids_clientes, ids_jogos)
+        mostrar_resumo(db)
+
+    print("\nPovoamento concluído com sucesso!\n")
+
+
+if __name__ == "__main__":
+    reset_flag = "--reset" in sys.argv
+
+    try:
+        seed_database(reset=reset_flag)
+    except Exception as e:
+        print(f"\nErro durante o povoamento: {e}")
+        sys.exit(1)
