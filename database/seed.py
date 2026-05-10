@@ -165,3 +165,59 @@ def inserir_clientes(db: Database) -> list[int]:
         ids_clientes.append(cursor.lastrowid)
     print(f"  -> {len(ids_clientes)} clientes inseridos.\n")
     return ids_clientes
+
+def inserir_vendas_exemplo(db: Database, ids_clientes: list[int],
+                           ids_jogos: list[int]) -> None:
+    """
+    Cria 5 vendas de exemplo, cada uma com 1 a 3 itens diferentes.
+    Calcula o valor_total automaticamente.
+    """
+    print("Inserindo vendas de exemplo...")
+
+    # (indice_cliente, [(indice_jogo, quantidade)], desconto_pct, dias_atras)
+    vendas_exemplo = [
+        (0, [(0, 1), (6, 2)],          0,   10),  # Ana: Catan + 2 Codenames
+        (1, [(3, 1)],                  5,    7),  # Bruno: Pandemic
+        (2, [(2, 1), (10, 1), (12, 3)], 10,  5),  # Carla: 3 jogos
+        (3, [(13, 1)],                 0,    3),  # Diogo: Gloomhaven
+        (4, [(7, 2), (14, 1)],         15,   1),  # Eva: 2 Dixit + King of Tokyo
+    ]
+
+    for idx_cli, itens, desconto, dias in vendas_exemplo:
+        id_cliente = ids_clientes[idx_cli]
+        data_venda = datetime.now() - timedelta(days=dias)
+
+        # 1. Calcular valor_total (subtotal - desconto%)
+        subtotal = 0.0
+        itens_detalhe = []
+        for idx_jogo, qtd in itens:
+            id_jogo = ids_jogos[idx_jogo]
+            jogo = db.fetch_one(
+                "SELECT preco FROM jogos WHERE id_jogo = ?;",
+                (id_jogo,)
+            )
+            preco_unit = jogo["preco"]
+            subtotal += preco_unit * qtd
+            itens_detalhe.append((id_jogo, qtd, preco_unit))
+
+        valor_total = round(subtotal * (1 - desconto / 100), 2)
+
+        # 2. Inserir cabeçalho da venda
+        cursor = db.execute(
+            """INSERT INTO vendas (id_cliente, data_hora, desconto, valor_total)
+               VALUES (?, ?, ?, ?);""",
+            (id_cliente, data_venda.strftime("%Y-%m-%d %H:%M:%S"),
+             desconto, valor_total)
+        )
+        id_venda = cursor.lastrowid
+
+        # 3. Inserir itens da venda
+        for id_jogo, qtd, preco_unit in itens_detalhe:
+            db.execute(
+                """INSERT INTO itens_venda
+                   (id_venda, id_jogo, quantidade, preco_unitario)
+                   VALUES (?, ?, ?, ?);""",
+                (id_venda, id_jogo, qtd, preco_unit)
+            )
+
+    print(f"  -> {len(vendas_exemplo)} vendas inseridas.\n")
