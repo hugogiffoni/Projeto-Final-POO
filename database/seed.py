@@ -133,3 +133,21 @@ def inserir_catalogos(db: Database) -> tuple[dict, dict, dict]:
           f"{len(editoras_map)} editoras inseridos.\n")
 
     return generos_map, criadores_map, editoras_map
+
+def inserir_jogos(db: Database, generos_map: dict,
+                  criadores_map: dict, editoras_map: dict) -> list[int]:
+    """Insere os jogos usando os IDs dos catálogos."""
+    print("Inserindo jogos...")
+    ids_jogos = []
+    for titulo, criador, editora, genero, ano, idade, preco, stock in JOGOS:
+        cursor = db.execute(
+            """INSERT INTO jogos
+               (titulo, id_criador, id_editora, id_genero,
+                ano_lancamento, idade_minima, preco, stock)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
+            (titulo, criadores_map[criador], editoras_map[editora],
+             generos_map[genero], ano, idade, preco, stock)
+        )
+        ids_jogos.append(cursor.lastrowid)
+    print(f"  -> {len(ids_jogos)} jogos inseridos.\n")
+    return ids_jogos
