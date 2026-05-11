@@ -12,7 +12,7 @@ Todas as comunicações usam JSON.
 """
 from flask import Blueprint, request, jsonify
 from database.connection import Database
-from config import Config
+from webservice.config import Config
 
 # Blueprint = "mini-app" Flask que agrupa rotas relacionadas.
 # url_prefix faz com que TODAS as rotas comecem por /api/jogos
