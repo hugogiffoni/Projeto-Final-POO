@@ -41,3 +41,29 @@ def listar_jogos():
 
     except Exception as e:
         return jsonify({"sucesso": False, "erro": str(e)}), 500
+
+# ============================================================
+# GET /api/jogos/<id>  -> Obtém UM jogo específico
+# ============================================================
+@jogos_bp.route("/<int:id_jogo>", methods=["GET"])
+def obter_jogo(id_jogo: int):
+    """Retorna os dados de um único jogo pelo seu ID."""
+    try:
+        with Database(str(Config.DATABASE_PATH)) as db:
+            jogo = db.fetch_one(
+                "SELECT * FROM jogos WHERE id_jogo = ?",
+                (id_jogo,)
+            )
+
+        if jogo is None:
+            return jsonify({
+                "sucesso": False,
+                "erro": f"Jogo com id {id_jogo} não encontrado."
+            }), 404
+        
+        return jsonify({"sucesso": True, "jogo": jogo}), 200
+    
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)}), 500
+     
+     
