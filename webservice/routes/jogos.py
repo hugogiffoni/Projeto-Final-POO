@@ -125,3 +125,62 @@ def criar_jogo():
 
     except Exception as e:
         return jsonify({"sucesso": False, "erro": str(e)}), 500
+
+# ============================================================
+# PUT /api/jogos/<id>  -> Atualiza um jogo existente
+# ============================================================
+@jogos_bp.route("/<int:id_jogo>", methods=["PUT"])
+def atualizar_jogo(id_jogo: int):
+    """Atualiza os campos enviados no JSON. Atualização parcial permitida."""
+    dados = request.get_json(silent=True)
+
+    if not dados:
+        return jsonify({
+            "sucesso": False,
+            "erro": "Corpo JSON em falta ou inválido."
+        }), 400
+
+    # Filtrar apenas os campos válidos enviados pelo utilizador
+    campos_validos = {k: v for k, v in dados.items() if k in CAMPOS_OBRIGATORIOS}
+
+    if not campos_validos:
+        return jsonify({
+            "sucesso": False,
+            "erro": "Nenhum campo válido para atualizar."
+        }), 400
+
+    try:
+        with Database(str(Config.DATABASE_PATH)) as db:
+            # Verifica se o jogo existe
+            existente = db.fetch_one(
+                "SELECT id_jogo FROM jogos WHERE id_jogo = ?",
+                (id_jogo,)
+            )
+            if existente is None:
+                return jsonify({
+                    "sucesso": False,
+                    "erro": f"Jogo com id {id_jogo} não encontrado."
+                }), 404
+
+            # Construir SET dinâmico: "titulo = ?, preco = ?, ..."
+            set_clause = ", ".join(f"{campo} = ?" for campo in campos_validos)
+            valores = tuple(campos_validos.values()) + (id_jogo,)
+
+            db.execute(
+                f"UPDATE jogos SET {set_clause} WHERE id_jogo = ?",
+                valores
+            )
+
+            jogo_atualizado = db.fetch_one(
+                "SELECT * FROM jogos WHERE id_jogo = ?",
+                (id_jogo,)
+            )
+
+        return jsonify({
+            "sucesso": True,
+            "mensagem": "Jogo atualizado com sucesso.",
+            "jogo": jogo_atualizado
+        }), 200
+
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)}), 500
