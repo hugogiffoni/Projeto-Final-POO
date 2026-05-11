@@ -63,7 +63,7 @@ def create_app(config_class: type = Config) -> Flask:
     @app.route("/", methods=["GET"])
     def index():
         return jsonify({
-            "servico": "Loja de Jogos de Tabluleiro - API",
+            "servico": "Loja de Jogos de Tabuleiro - API",
             "versao": "1.0.0",
             "endpoints_disponiveis": [
                 f"{config_class.API_PREFIX}/health"
