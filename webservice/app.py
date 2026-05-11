@@ -32,7 +32,7 @@ def create_app(config_class: type = Config) -> Flask:
 
     # Registar Blueprints (rotas) com prefixo / api
     app.register_blueprint(health_bp, url_prefix=config_class.API_PREFIX)
-    app.register_blueprint(jogos_bp, url_prefix=config_class.API_PREFIX)
+    app.register_blueprint(jogos_bp)
 
     # ----------------------------------------------------------------
     # Handlers de erro globais (devolvem JSON em vez de HTML)
