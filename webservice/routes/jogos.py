@@ -81,3 +81,11 @@ def criar_jogo():
             "sucesso": False,
             "erro": "Corpo JSON em falta ou inválido."
         }), 400
+    
+    # Validação 2: todos os campos obrigatórios estão presentes?
+    em_falta = [campo for campo in CAMPOS_OBRIGATORIOS if campo not in dados]
+    if em_falta:
+        return jsonify({
+            "sucesso": False,
+            "erro": f"Campos obrigatórios em falta: {em_falta}"
+        }), 400
