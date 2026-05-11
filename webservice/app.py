@@ -11,7 +11,7 @@ Uso:
 from flask import Flask, jsonify
 
 from webservice.config import Config
-from webservice.routes import health_bp
+from webservice.routes.health import health_bp
 
 def create_app(config_class: type = Config) -> Flask:
     """
