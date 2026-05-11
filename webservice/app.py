@@ -55,3 +55,20 @@ def create_app(config_class: type = Config) -> Flask:
             "error": "Erro interno do servidor",
             "status": 500
         }), 500
+    
+    # ----------------------------------------------------------------
+    # Rota raiz (informação básica do serviço)
+    # ----------------------------------------------------------------
+
+    @app.route("/", methods=["GET"])
+    def index():
+        return jsonify({
+            "servico": "Loja de Jogos de Tabluleiro - API",
+            "versao": "1.0.0",
+            "endpoints_disponiveis": [
+                f"{config_class.API_PREFIX}/health"
+            ],
+            "documentacao": "Ver README.md"
+
+        })
+    return app
