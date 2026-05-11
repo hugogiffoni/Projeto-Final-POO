@@ -72,3 +72,21 @@ def create_app(config_class: type = Config) -> Flask:
 
         })
     return app
+
+# =====================================================================
+# Entry point
+# =====================================================================
+
+if __name__ == "__main__":
+    app = create_app()
+    print("\n" + "=" * 60)
+    print("Servidor Flask a iniciar...")
+    print(f"URL: http://{Config.HOST}:{Config.PORT}")
+    print(f"Health check: http://{Config.HOST}:{Config.PORT}/api/health")
+    print("=" * 60 + "\n")
+
+    app.run(
+        host=Config.HOST,
+        port=Config.PORT,
+        debug=Config.DEBUG,
+    )
