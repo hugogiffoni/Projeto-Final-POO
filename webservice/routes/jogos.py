@@ -65,5 +65,19 @@ def obter_jogo(id_jogo: int):
     
     except Exception as e:
         return jsonify({"sucesso": False, "erro": str(e)}), 500
-     
-     
+
+# ============================================================
+# POST /api/jogos  -> Cria um novo jogo
+# ============================================================
+
+@jogos_bp.route("", methods=["POST"])
+def criar_jogo():
+    """Cria um novo jogo. Espera JSON com todos os campos obrigatórios."""
+    dados = request.get_json(silent=True)
+
+    # Validação 1: corpo JSON existe?
+    if not dados:
+        return jsonify({
+            "sucesso": False,
+            "erro": "Corpo JSON em falta ou inválido."
+        }), 400
