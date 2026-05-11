@@ -32,4 +32,26 @@ def create_app(config_class: type = Config) -> Flask:
     # Registar Blueprints (rotas) com prefixo / api
     app.register_blueprint(health_bp, url_prefix=config_class.API_PREFIX)
 
+    # ----------------------------------------------------------------
+    # Handlers de erro globais (devolvem JSON em vez de HTML)
+    # ----------------------------------------------------------------
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "error": "Recurso não encontrado",
+            "status": 404
+        }), 404
     
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            "error": "Método HTTP não permitido para esse endpoint",
+            "status": 405
+        }), 405
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({
+            "error": "Erro interno do servidor",
+            "status": 500
+        }), 500
