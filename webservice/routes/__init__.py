@@ -1,0 +1,1 @@
+"""Package das rotas da API."""
