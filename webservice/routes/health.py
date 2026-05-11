@@ -35,7 +35,7 @@ def health_check():
     if db_exists:
         try:
             with Database(str(db_path)) as db:
-                resultado = db.execute("SELECT COUNT(*) AS total FROM jogos")
+                resultado = db.fetch_one("SELECT COUNT(*) AS total FROM jogos")
                 total_jogos = resultado["total"]
                 db_ok = True
         except Exception as e:
