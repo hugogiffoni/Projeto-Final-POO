@@ -16,7 +16,7 @@ class Config:
 
     # Base de dados (caminho absoluto para evitar problemas de CWD)
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
-    DATABASE_PATH: Path = BASE_DIR / "database" / "loja.db"
+    DATABASE_PATH: Path = BASE_DIR / "database" / "loja_jogos.db"
 
     # API
     API_PREFIX: str = "/api"
