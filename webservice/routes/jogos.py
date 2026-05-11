@@ -22,3 +22,22 @@ jogos_bp = Blueprint("jogos", __name__, url_prefix=f"{Config.API_PREFIX}/jogos")
 # Campos obrigatórios ao criar um jogo (validação no POST)
 CAMPOS_OBRIGATORIOS = ["titulo", "criador", "editora", "ano_lancamento",
                        "genero", "idade_minima", "preco"]
+
+# ============================================================
+# GET /api/jogos  -> Lista todos os jogos
+# ============================================================
+@jogos_bp.route("", methods=["GET"])
+def listar_jogos():
+    """Retorna a lista completa de jogos da base de dados."""
+    try:
+        with Database(str(Config.DATABASE_PATH)) as db:
+            jogos = db.fetch_all("SELECT * FROM jogos ORDER BY titulo")
+
+        return jsonify({
+            "sucesso": True,
+            "total": len(jogos),
+            "jogos": jogos
+        }), 200
+
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)}), 500
