@@ -89,3 +89,39 @@ def criar_jogo():
             "sucesso": False,
             "erro": f"Campos obrigatórios em falta: {em_falta}"
         }), 400
+    
+    try:
+        with Database(str(Config.DATABASE_PATH)) as db:
+            cursor = db.execute(
+                """
+                INSERT INTO jogos
+                    (titulo, criador, editora, ano_lancamento,
+                     genero, idade_minima, preco)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    dados["titulo"],
+                    dados["criador"],
+                    dados["editora"],
+                    dados["ano_lancamento"],
+                    dados["genero"],
+                    dados["idade_minima"],
+                    dados["preco"],
+                )
+            )
+            novo_id = cursor.lastrowid
+
+            # Buscar o jogo recém-criado para devolver ao cliente
+            jogo_criado = db.fetch_one(
+                "SELECT * FROM jogos WHERE id_jogo = ?",
+                (novo_id,)
+            )
+
+        return jsonify({
+            "sucesso": True,
+            "mensagem": "Jogo criado com sucesso.",
+            "jogo": jogo_criado
+        }), 201   # 201 Created
+
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)}), 500
