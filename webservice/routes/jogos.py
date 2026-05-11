@@ -184,3 +184,32 @@ def atualizar_jogo(id_jogo: int):
 
     except Exception as e:
         return jsonify({"sucesso": False, "erro": str(e)}), 500
+    
+# ============================================================
+# DELETE /api/jogos/<id>  -> Remove um jogo
+# ============================================================
+@jogos_bp.route("/<int:id_jogo>", methods=["DELETE"])
+def remover_jogo(id_jogo: int):
+    """Remove um jogo pelo seu ID."""
+    try:
+        with Database(str(Config.DATABASE_PATH)) as db:
+            # Verifica se existe antes de apagar
+            existente = db.fetch_one(
+                "SELECT id_jogo FROM jogos WHERE id_jogo = ?",
+                (id_jogo,)
+            )
+            if existente is None:
+                return jsonify({
+                    "sucesso": False,
+                    "erro": f"Jogo com id {id_jogo} não encontrado."
+                }), 404
+
+            db.execute("DELETE FROM jogos WHERE id_jogo = ?", (id_jogo,))
+
+        return jsonify({
+            "sucesso": True,
+            "mensagem": f"Jogo {id_jogo} removido com sucesso."
+        }), 200
+
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)}), 500
