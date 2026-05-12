@@ -23,3 +23,29 @@ def _get_db() -> Database:
     db.connect()
     return db
 
+# ---------------------------------------------------------------------
+# GET /api/clientes  → listar todos
+# ---------------------------------------------------------------------
+@clientes_bp.route("", methods=["GET"])
+def listar_clientes():
+    """Lista todos os clientes (com pesquisa opcional por nome ou email)."""
+    db = _get_db()
+    try:
+        # Pesquisa opcional via ?q=texto
+        termo = request.args.get("q", "").strip()
+
+        if termo:
+            sql = """
+                SELECT * FROM clientes
+                WHERE nome LIKE ? OR email LIKE ?
+                ORDER BY nome
+            """
+            param = f"%{termo}%"
+            rows = db.fetch_all(sql, (param, param))
+        else:
+            rows = db.fetch_all("SELECT * FROM clientes ORDER BY nome")
+
+        clientes = [Cliente.from_dict(row).to_dict() for row in rows]
+        return jsonify(clientes), 200
+    finally:
+        db.close()
