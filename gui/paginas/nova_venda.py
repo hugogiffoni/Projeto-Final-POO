@@ -257,3 +257,41 @@ def _atualizar_desconto(id_jogo: int, novo_desc) -> None:
             linha["desconto"] = desc
             break
     _refrescar_carrinho()        
+
+# ---------------------------------------------------------------- confirmar
+def _confirmar_venda() -> None:
+    """Envia cada linha do carrinho como uma venda separada para o backend."""
+    if estado.cliente is None:
+        ui.notify("Seleciona um cliente.", type="warning")
+        return
+    if not estado.carrinho:
+        ui.notify("O carrinho está vazio.", type="warning")
+        return
+
+    erros: list[str] = []
+    sucesso = 0
+    for linha in estado.carrinho:
+        payload = {
+            "id_cliente": estado.cliente["id_cliente"],
+            "id_jogo": linha["jogo"]["id_jogo"],
+            "quantidade": linha["quantidade"],
+            "desconto": linha["desconto"],
+        }
+        try:
+            api_client.criar_venda(payload)
+            sucesso += 1
+        except APIError as e:
+            erros.append(f"{linha['jogo']['titulo']}: {e}")
+
+    if erros:
+        _notificar_erro("Algumas linhas falharam:\n" + "\n".join(erros))
+    if sucesso:
+        _notificar_sucesso(
+            f"Venda registada! {sucesso} linha(s) gravada(s). "
+            f"Total: {_formatar_eur(_calcular_total())}"
+        )
+        # Limpar para nova venda
+        estado.cliente = None
+        estado.carrinho = []
+        _atualizar_label_cliente()
+        _refrescar_carrinho()    
