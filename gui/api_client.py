@@ -43,4 +43,26 @@ def _request(method: str, path: str, **kwargs) -> Any:
 
     if r.status_code == 204 or not r.content:
         return None
-    return r.json()        
+    return r.json()      
+
+# ================================================================ CLIENTES
+def listar_clientes(termo: str | None = None) -> list[dict]:
+    params = {"q": termo} if termo else None
+    data = _request("GET", "/clientes", params=params)
+    return data.get("clientes", data) if isinstance(data, dict) else data
+
+
+def obter_cliente(id_cliente: int) -> dict:
+    return _request("GET", f"/clientes/{id_cliente}")
+
+
+def criar_cliente(payload: dict) -> dict:
+    return _request("POST", "/clientes", json=payload)
+
+
+def atualizar_cliente(id_cliente: int, payload: dict) -> dict:
+    return _request("PUT", f"/clientes/{id_cliente}", json=payload)
+
+
+def apagar_cliente(id_cliente: int) -> None:
+    _request("DELETE", f"/clientes/{id_cliente}")  
