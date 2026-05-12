@@ -121,3 +121,61 @@ def _confirmar_apagar(cliente: dict) -> None:
                 .props("color=negative")
 
     dialog.open()
+
+# ---------------------------------------------------------------- página
+def criar_pagina_clientes() -> None:
+    """Constrói a página completa de clientes."""
+    with ui.column().classes("w-full p-6 gap-4"):
+        # Cabeçalho da página
+        with ui.row().classes("w-full items-center"):
+            ui.label("👥 Gestão de Clientes").classes("text-3xl font-bold")
+            ui.space()
+            ui.button("Novo Cliente", icon="person_add",
+                      on_click=lambda: _dialog_cliente()) \
+                .props("color=primary")
+
+        # Barra de pesquisa
+        with ui.row().classes("w-full items-center gap-2"):
+            estado.campo_pesquisa = ui.input(
+                placeholder="Pesquisar por nome, email ou telefone...",
+            ).classes("flex-grow").props("clearable outlined dense")
+            estado.campo_pesquisa.on("update:model-value",
+                                     lambda _: _recarregar_tabela())
+            ui.button(icon="refresh", on_click=_recarregar_tabela) \
+                .props("flat round").tooltip("Recarregar")
+
+        # Tabela
+        colunas = [
+            {"name": "id_cliente", "label": "ID", "field": "id_cliente",
+             "align": "left", "sortable": True},
+            {"name": "nome", "label": "Nome", "field": "nome",
+             "align": "left", "sortable": True},
+            {"name": "email", "label": "Email", "field": "email", "align": "left"},
+            {"name": "telefone", "label": "Telefone", "field": "telefone",
+             "align": "left"},
+            {"name": "morada", "label": "Morada", "field": "morada", "align": "left"},
+            {"name": "acoes", "label": "Ações", "field": "acoes", "align": "center"},
+        ]
+
+        estado.tabela = ui.table(
+            columns=colunas,
+            rows=[],
+            row_key="id_cliente",
+            pagination=10,
+        ).classes("w-full")
+
+        # Slot personalizado para a coluna "acoes" (botões editar/apagar)
+        estado.tabela.add_slot("body-cell-acoes", r"""
+            <q-td :props="props">
+                <q-btn flat dense round icon="edit" color="primary"
+                       @click="() => $parent.$emit('editar', props.row)" />
+                <q-btn flat dense round icon="delete" color="negative"
+                       @click="() => $parent.$emit('apagar', props.row)" />
+            </q-td>
+        """)
+
+        estado.tabela.on("editar", lambda e: _dialog_cliente(e.args))
+        estado.tabela.on("apagar", lambda e: _confirmar_apagar(e.args))
+
+    # Carregar dados iniciais
+    _recarregar_tabela()    
