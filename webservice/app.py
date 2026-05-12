@@ -15,6 +15,7 @@ from webservice.routes.health import health_bp
 from webservice.routes.jogos import jogos_bp 
 from webservice.routes.clientes import clientes_bp 
 from webservice.routes.catalogos import catalogos_bp
+from webservice.routes.vendas import vendas_bp
 
 def create_app(config_class: type = Config) -> Flask:
     """
@@ -37,6 +38,7 @@ def create_app(config_class: type = Config) -> Flask:
     app.register_blueprint(jogos_bp)
     app.register_blueprint(clientes_bp)
     app.register_blueprint(catalogos_bp)
+    app.register_blueprint(vendas_bp)
     
      # sem url_prefix porque já tem no Blueprint
 
