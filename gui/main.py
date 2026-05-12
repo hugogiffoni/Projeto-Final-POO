@@ -10,6 +10,8 @@ from nicegui import ui
 
 from gui.paginas.home import criar_pagina_home
 from gui.paginas.clientes import criar_pagina_clientes
+from gui.paginas.jogos import criar_pagina_jogos
+
 
 # ---------------------------------------------------------------- layout
 def cabecalho() -> None:
@@ -49,7 +51,7 @@ def pagina_clientes() -> None:
 @ui.page("/jogos")
 def pagina_jogos() -> None:
     cabecalho()
-    ui.label("🎮 Página de Jogos — em construção").classes("text-2xl p-8")
+    criar_pagina_jogos()
 
 
 @ui.page("/nova-venda")
