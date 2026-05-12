@@ -172,3 +172,88 @@ def _atualizar_label_cliente() -> None:
             partes.append(f"✉️ {c['email']}")
         estado.label_cliente.text = "  •  ".join(partes)
         estado.label_cliente.classes(replace="text-lg font-semibold text-primary")
+
+# ---------------------------------------------------------------- carrinho
+def _adicionar_jogo() -> None:
+    """Adiciona o jogo selecionado no dropdown ao carrinho."""
+    if estado.select_jogo is None or estado.select_jogo.value is None:
+        ui.notify("Seleciona um jogo primeiro.", type="warning")
+        return
+
+    id_jogo = estado.select_jogo.value
+    jogo = next((j for j in estado.todos_os_jogos if j["id_jogo"] == id_jogo), None)
+    if jogo is None:
+        ui.notify("Jogo inválido.", type="negative")
+        return
+
+    # Se já está no carrinho, incrementa quantidade em vez de duplicar
+    for linha in estado.carrinho:
+        if linha["jogo"]["id_jogo"] == id_jogo:
+            linha["quantidade"] += 1
+            _refrescar_carrinho()
+            return
+
+    estado.carrinho.append({
+        "jogo": jogo,
+        "quantidade": 1,
+        "desconto": 0.0,
+    })
+    estado.select_jogo.set_value(None)
+    _refrescar_carrinho()
+
+
+def _remover_linha(id_jogo: int) -> None:
+    estado.carrinho = [
+        l for l in estado.carrinho if l["jogo"]["id_jogo"] != id_jogo
+    ]
+    _refrescar_carrinho()
+
+
+def _refrescar_carrinho() -> None:
+    """Reconstrói as rows da tabela do carrinho e atualiza o total."""
+    if estado.tabela_carrinho is None:
+        return
+
+    rows = []
+    for linha in estado.carrinho:
+        rows.append({
+            "id_jogo": linha["jogo"]["id_jogo"],
+            "titulo": linha["jogo"]["titulo"],
+            "preco_fmt": _formatar_eur(float(linha["jogo"].get("preco") or 0)),
+            "quantidade": linha["quantidade"],
+            "desconto": linha["desconto"],
+            "subtotal_fmt": _formatar_eur(_calcular_subtotal(linha)),
+        })
+
+    estado.tabela_carrinho.rows = rows
+    estado.tabela_carrinho.update()
+
+    if estado.label_total is not None:
+        estado.label_total.text = f"Total: {_formatar_eur(_calcular_total())}"
+
+
+def _atualizar_quantidade(id_jogo: int, nova_qtd) -> None:
+    try:
+        qtd = int(nova_qtd)
+    except (TypeError, ValueError):
+        return
+    if qtd < 1:
+        qtd = 1
+    for linha in estado.carrinho:
+        if linha["jogo"]["id_jogo"] == id_jogo:
+            linha["quantidade"] = qtd
+            break
+    _refrescar_carrinho()
+
+
+def _atualizar_desconto(id_jogo: int, novo_desc) -> None:
+    try:
+        desc = float(novo_desc)
+    except (TypeError, ValueError):
+        return
+    desc = max(0.0, min(100.0, desc))
+    for linha in estado.carrinho:
+        if linha["jogo"]["id_jogo"] == id_jogo:
+            linha["desconto"] = desc
+            break
+    _refrescar_carrinho()        
