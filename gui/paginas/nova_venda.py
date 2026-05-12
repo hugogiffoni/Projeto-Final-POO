@@ -295,3 +295,118 @@ def _confirmar_venda() -> None:
         estado.carrinho = []
         _atualizar_label_cliente()
         _refrescar_carrinho()    
+
+# ---------------------------------------------------------------- página
+def criar_pagina_nova_venda() -> None:
+    """Constrói a página completa de nova venda."""
+    # Carrega catálogo de jogos para o dropdown
+    try:
+        estado.todos_os_jogos = api_client.listar_jogos()
+    except APIError as e:
+        _notificar_erro(e)
+        estado.todos_os_jogos = []
+
+    opcoes_jogos = {
+        j["id_jogo"]: f"{j['titulo']} — {_formatar_eur(float(j.get('preco') or 0))}"
+        for j in estado.todos_os_jogos
+    }
+
+    with ui.column().classes("w-full p-6 gap-4"):
+        ui.label("🛒 Nova Venda").classes("text-3xl font-bold")
+
+        # ---------- Cartão do Cliente ----------
+        with ui.card().classes("w-full"):
+            ui.label("1️⃣ Cliente").classes("text-lg font-bold")
+            with ui.row().classes("w-full items-center gap-2"):
+                estado.label_cliente = ui.label("Nenhum cliente selecionado") \
+                    .classes("text-lg text-gray-500 italic flex-grow")
+                ui.button("Selecionar", icon="search",
+                          on_click=_dialog_selecionar_cliente) \
+                    .props("color=primary outline")
+                ui.button("Novo Cliente", icon="person_add",
+                          on_click=_dialog_novo_cliente) \
+                    .props("color=primary")
+
+        # ---------- Cartão de Adicionar Jogos ----------
+        with ui.card().classes("w-full"):
+            ui.label("2️⃣ Adicionar Jogos").classes("text-lg font-bold")
+            with ui.row().classes("w-full items-end gap-2"):
+                estado.select_jogo = ui.select(
+                    options=opcoes_jogos,
+                    label="Jogo",
+                    with_input=True,
+                    clearable=True,
+                ).classes("flex-grow").props("outlined dense")
+                ui.button("Adicionar", icon="add_shopping_cart",
+                          on_click=_adicionar_jogo) \
+                    .props("color=primary")
+
+        # ---------- Cartão do Carrinho ----------
+        with ui.card().classes("w-full"):
+            ui.label("3️⃣ Carrinho").classes("text-lg font-bold")
+
+            colunas = [
+                {"name": "titulo", "label": "Jogo", "field": "titulo",
+                 "align": "left"},
+                {"name": "preco_fmt", "label": "Preço Unit.",
+                 "field": "preco_fmt", "align": "right"},
+                {"name": "quantidade", "label": "Qtd.", "field": "quantidade",
+                 "align": "center"},
+                {"name": "desconto", "label": "Desc. (%)", "field": "desconto",
+                 "align": "center"},
+                {"name": "subtotal_fmt", "label": "Subtotal",
+                 "field": "subtotal_fmt", "align": "right"},
+                {"name": "acoes", "label": "", "field": "acoes",
+                 "align": "center"},
+            ]
+
+            estado.tabela_carrinho = ui.table(
+                columns=colunas,
+                rows=[],
+                row_key="id_jogo",
+            ).classes("w-full")
+
+            # Quantidade editável
+            estado.tabela_carrinho.add_slot("body-cell-quantidade", r"""
+                <q-td :props="props">
+                    <q-input dense type="number" :model-value="props.row.quantidade"
+                             @update:model-value="(v) => $parent.$emit('qtd', {id: props.row.id_jogo, v: v})"
+                             style="width: 80px" :min="1" />
+                </q-td>
+            """)
+
+            # Desconto editável
+            estado.tabela_carrinho.add_slot("body-cell-desconto", r"""
+                <q-td :props="props">
+                    <q-input dense type="number" :model-value="props.row.desconto"
+                             @update:model-value="(v) => $parent.$emit('desc', {id: props.row.id_jogo, v: v})"
+                             style="width: 80px" :min="0" :max="100" />
+                </q-td>
+            """)
+
+            # Botão remover
+            estado.tabela_carrinho.add_slot("body-cell-acoes", r"""
+                <q-td :props="props">
+                    <q-btn flat dense round icon="delete" color="negative"
+                           @click="() => $parent.$emit('remover', props.row.id_jogo)" />
+                </q-td>
+            """)
+
+            estado.tabela_carrinho.on(
+                "qtd", lambda e: _atualizar_quantidade(e.args["id"], e.args["v"]))
+            estado.tabela_carrinho.on(
+                "desc", lambda e: _atualizar_desconto(e.args["id"], e.args["v"]))
+            estado.tabela_carrinho.on(
+                "remover", lambda e: _remover_linha(e.args))
+
+            # Total + botão confirmar
+            with ui.row().classes("w-full items-center justify-end mt-4 gap-4"):
+                estado.label_total = ui.label("Total: 0,00 €") \
+                    .classes("text-2xl font-bold text-primary")
+                ui.button("Confirmar Venda", icon="check_circle",
+                          on_click=_confirmar_venda) \
+                    .props("color=positive size=lg")
+
+    # Estado inicial
+    _atualizar_label_cliente()
+    _refrescar_carrinho()        
