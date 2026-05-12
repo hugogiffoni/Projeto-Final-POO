@@ -13,6 +13,7 @@ from flask import Flask, jsonify
 from webservice.config import Config
 from webservice.routes.health import health_bp
 from webservice.routes.jogos import jogos_bp 
+from webservice.routes.clientes import clientes_bp 
 
 def create_app(config_class: type = Config) -> Flask:
     """
@@ -32,7 +33,9 @@ def create_app(config_class: type = Config) -> Flask:
 
     # Registar Blueprints (rotas) com prefixo / api
     app.register_blueprint(health_bp, url_prefix=config_class.API_PREFIX)
-    app.register_blueprint(jogos_bp) # sem url_prefix porque já tem no Blueprint
+    app.register_blueprint(jogos_bp)
+    app.register_blueprint(clientes_bp)
+     # sem url_prefix porque já tem no Blueprint
 
     # ----------------------------------------------------------------
     # Handlers de erro globais (devolvem JSON em vez de HTML)
@@ -69,7 +72,8 @@ def create_app(config_class: type = Config) -> Flask:
             "versao": "1.0.0",
             "endpoints_disponiveis": [
                 f"{config_class.API_PREFIX}/health",
-                f"{config_class.API_PREFIX}/jogos"
+                f"{config_class.API_PREFIX}/jogos",
+                f"{config_class.API_PREFIX}/clientes"
             ],
             "documentacao": "Ver README.md"
 
