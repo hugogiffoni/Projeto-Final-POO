@@ -66,3 +66,47 @@ def atualizar_cliente(id_cliente: int, payload: dict) -> dict:
 
 def apagar_cliente(id_cliente: int) -> None:
     _request("DELETE", f"/clientes/{id_cliente}")  
+
+# ================================================================ JOGOS
+def listar_jogos(termo: str | None = None) -> list[dict]:
+    params = {"q": termo} if termo else None
+    data = _request("GET", "/jogos", params=params)
+    return data.get("jogos", data) if isinstance(data, dict) else data
+
+
+def obter_jogo(id_jogo: int) -> dict:
+    return _request("GET", f"/jogos/{id_jogo}")
+
+
+def criar_jogo(payload: dict) -> dict:
+    return _request("POST", "/jogos", json=payload)
+
+
+def atualizar_jogo(id_jogo: int, payload: dict) -> dict:
+    return _request("PUT", f"/jogos/{id_jogo}", json=payload)
+
+
+def apagar_jogo(id_jogo: int) -> None:
+    _request("DELETE", f"/jogos/{id_jogo}")
+
+
+# ================================================================ VENDAS
+def listar_vendas() -> list[dict]:
+    data = _request("GET", "/vendas")
+    return data.get("vendas", data) if isinstance(data, dict) else data
+
+
+def obter_venda(id_venda: int) -> dict:
+    return _request("GET", f"/vendas/{id_venda}")
+
+
+def criar_venda(payload: dict) -> dict:
+    return _request("POST", "/vendas", json=payload)
+
+
+def anular_venda(id_venda: int) -> dict:
+    return _request("DELETE", f"/vendas/{id_venda}")
+
+
+def historico_cliente(id_cliente: int) -> dict:
+    return _request("GET", f"/vendas/cliente/{id_cliente}")
