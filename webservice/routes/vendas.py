@@ -271,7 +271,7 @@ def criar_venda():
     return jsonify(resposta), 201
 
 
-# ---------------------------------------------------------------- DELETE /api/vendas/<id>
+# --------------------------------------------------------------- DELETE /api/vendas/<id>
 @vendas_bp.route("/<int:id_venda>", methods=["DELETE"])
 def anular_venda(id_venda: int):
     """
