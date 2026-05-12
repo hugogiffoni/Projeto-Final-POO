@@ -112,3 +112,57 @@ def criar_cliente():
         return jsonify(Cliente.from_dict(row).to_dict()), 201
     finally:
         db.close()
+
+# ---------------------------------------------------------------------
+# PUT /api/clientes/<id>  → atualizar
+# ---------------------------------------------------------------------
+@clientes_bp.route("/<int:id_cliente>", methods=["PUT"])
+def atualizar_cliente(id_cliente: int):
+    """Atualiza um cliente existente."""
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"erro": "Corpo JSON ausente ou inválido."}), 400
+
+    db = _get_db()
+    try:
+        # Verifica se existe
+        existente = db.fetch_one(
+            "SELECT * FROM clientes WHERE id_cliente = ?", (id_cliente,)
+        )
+        if not existente:
+            return jsonify({"erro": f"Cliente {id_cliente} não encontrado."}), 404
+
+        # Merge: campos do request sobrepõem-se aos existentes
+        merged = {**existente, **data, "id_cliente": id_cliente}
+
+        try:
+            cliente = Cliente.from_dict(merged)
+        except (ValueError, KeyError) as e:
+            return jsonify({"erro": str(e)}), 400
+
+        # Verifica email duplicado em OUTRO cliente
+        if cliente.email:
+            conflito = db.fetch_one(
+                "SELECT id_cliente FROM clientes WHERE email = ? AND id_cliente != ?",
+                (cliente.email, id_cliente),
+            )
+            if conflito:
+                return jsonify(
+                    {"erro": f"Já existe outro cliente com o email '{cliente.email}'."}
+                ), 409
+
+        db.execute(
+            """
+            UPDATE clientes
+               SET nome = ?, morada = ?, telefone = ?, email = ?
+             WHERE id_cliente = ?
+            """,
+            (cliente.nome, cliente.morada, cliente.telefone, cliente.email, id_cliente),
+        )
+
+        row = db.fetch_one(
+            "SELECT * FROM clientes WHERE id_cliente = ?", (id_cliente,)
+        )
+        return jsonify(Cliente.from_dict(row).to_dict()), 200
+    finally:
+        db.close()
