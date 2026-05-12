@@ -31,3 +31,33 @@ def cabecalho() -> None:
             ui.button("Histórico", icon="history",
                       on_click=lambda: ui.navigate.to("/historico")) \
                 .props("flat color=white")
+            
+# ---------------------------------------------------------------- rotas
+@ui.page("/")
+def pagina_home() -> None:
+    cabecalho()
+    criar_pagina_home()
+
+
+@ui.page("/clientes")
+def pagina_clientes() -> None:
+    cabecalho()
+    ui.label("👥 Página de Clientes — em construção").classes("text-2xl p-8")
+
+
+@ui.page("/jogos")
+def pagina_jogos() -> None:
+    cabecalho()
+    ui.label("🎮 Página de Jogos — em construção").classes("text-2xl p-8")
+
+
+@ui.page("/nova-venda")
+def pagina_nova_venda() -> None:
+    cabecalho()
+    ui.label("🛒 Nova Venda — em construção").classes("text-2xl p-8")
+
+
+@ui.page("/historico")
+def pagina_historico() -> None:
+    cabecalho()
+    ui.label("📊 Histórico — em construção").classes("text-2xl p-8")            
