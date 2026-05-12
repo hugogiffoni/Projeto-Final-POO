@@ -45,8 +45,14 @@ class Cliente:
 
     @property
     def id_cliente(self) -> Optional[int]:
-        #ID do cliente (read-only, gerado pela BD)
-        return self._id_cliente   
+        """ID do cliente (gerado pela BD)."""
+        return self._id_cliente
+
+    @id_cliente.setter
+    def id_cliente(self, valor: Optional[int]) -> None:
+        if valor is not None and (not isinstance(valor, int) or valor <= 0):
+            raise ValueError("id_cliente deve ser um inteiro positivo ou None.")
+        self._id_cliente = valor
 
     @property
     def nome(self) -> str:
@@ -89,8 +95,12 @@ class Cliente:
 
     @property
     def data_registo(self) -> Optional[str]:
-        #Data de registo do cliente (read-only, gerada pela BD)
+        """Data de registo (gerada pela BD)."""
         return self._data_registo
+
+    @data_registo.setter
+    def data_registo(self, valor: Optional[str]) -> None:
+        self._data_registo = valor
 
     # Factory Methods (formas alternativas de criar Cliente)
 
