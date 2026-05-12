@@ -166,3 +166,33 @@ def atualizar_cliente(id_cliente: int):
         return jsonify(Cliente.from_dict(row).to_dict()), 200
     finally:
         db.close()
+
+# ---------------------------------------------------------------------
+# DELETE /api/clientes/<id>  → apagar
+# ---------------------------------------------------------------------
+@clientes_bp.route("/<int:id_cliente>", methods=["DELETE"])
+def apagar_cliente(id_cliente: int):
+    """Apaga um cliente (se não tiver vendas associadas)."""
+    db = _get_db()
+    try:
+        existe = db.fetch_one(
+            "SELECT id_cliente FROM clientes WHERE id_cliente = ?", (id_cliente,)
+        )
+        if not existe:
+            return jsonify({"erro": f"Cliente {id_cliente} não encontrado."}), 404
+
+        # Verifica vendas associadas (integridade referencial)
+        vendas = db.fetch_one(
+            "SELECT COUNT(*) AS n FROM vendas WHERE id_cliente = ?", (id_cliente,)
+        )
+        if vendas and vendas["n"] > 0:
+            return jsonify(
+                {
+                    "erro": f"Não é possível apagar: o cliente tem {vendas['n']} venda(s) associada(s).",
+                }
+            ), 409
+
+        db.execute("DELETE FROM clientes WHERE id_cliente = ?", (id_cliente,))
+        return jsonify({"mensagem": f"Cliente {id_cliente} apagado com sucesso."}), 200
+    finally:
+        db.close()        
