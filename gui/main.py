@@ -60,4 +60,13 @@ def pagina_nova_venda() -> None:
 @ui.page("/historico")
 def pagina_historico() -> None:
     cabecalho()
-    ui.label("📊 Histórico — em construção").classes("text-2xl p-8")            
+    ui.label("📊 Histórico — em construção").classes("text-2xl p-8")     
+
+# ---------------------------------------------------------------- arranque
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(
+        title="Loja de Jogos — Call Center",
+        port=8080,
+        reload=False,
+        favicon="🎲",
+    )           
