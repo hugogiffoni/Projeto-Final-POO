@@ -7,3 +7,7 @@ Funcionalidades:
     - Editar jogo existente (dialog)
     - Apagar jogo (com confirmação)
 """
+from nicegui import ui
+
+from gui import api_client
+from gui.api_client import APIError
