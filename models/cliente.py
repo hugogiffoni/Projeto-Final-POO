@@ -153,6 +153,7 @@ class Cliente:
         return (
             f"Cliente(id_cliente={self.id_cliente!r}, nome={self.nome!r}, "
             f"email={self.email!r}, morada={self.morada!r}, "
+            f"telefone={self.telefone!r})"
         )
     
     def __eq__(self, other: object) -> bool:
