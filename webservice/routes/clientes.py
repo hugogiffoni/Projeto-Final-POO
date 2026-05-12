@@ -66,4 +66,49 @@ def obter_cliente(id_cliente: int):
 
         return jsonify(Cliente.from_dict(row).to_dict()), 200
     finally:
-        db.close()        
+        db.close()  
+
+# ---------------------------------------------------------------------
+# POST /api/clientes  → criar novo
+# ---------------------------------------------------------------------
+@clientes_bp.route("", methods=["POST"])
+def criar_cliente():
+    """Cria um novo cliente."""
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"erro": "Corpo JSON ausente ou inválido."}), 400
+
+    db = _get_db()
+    try:
+        # Cria instância (dispara validações dos setters)
+        try:
+            cliente = Cliente.from_dict(data)
+        except (ValueError, KeyError) as e:
+            return jsonify({"erro": str(e)}), 400
+
+        # Verifica email duplicado (se fornecido)
+        if cliente.email:
+            existe = db.fetch_one(
+                "SELECT id_cliente FROM clientes WHERE email = ?", (cliente.email,)
+            )
+            if existe:
+                return jsonify(
+                    {"erro": f"Já existe um cliente com o email '{cliente.email}'."}
+                ), 409
+
+        # Insere na BD
+        novo_id = db.execute(
+            """
+            INSERT INTO clientes (nome, morada, telefone, email)
+            VALUES (?, ?, ?, ?)
+            """,
+            (cliente.nome, cliente.morada, cliente.telefone, cliente.email),
+        )
+
+        # Devolve o registo completo (já com id e data_registo)
+        row = db.fetch_one(
+            "SELECT * FROM clientes WHERE id_cliente = ?", (novo_id,)
+        )
+        return jsonify(Cliente.from_dict(row).to_dict()), 201
+    finally:
+        db.close()
