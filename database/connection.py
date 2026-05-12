@@ -55,6 +55,25 @@ class Database:
         if self.connection is not None:
             self.connection.close()
             self.connection = None
+    def insert(self, query: str, params: tuple = ()) -> int:
+        """
+        Executa um INSERT e devolve o ID da nova linha (lastrowid).
+
+        Útil para INSERTs em tabelas com PRIMARY KEY AUTOINCREMENT,
+        evitando que as rotas tenham de lidar diretamente com o cursor.
+
+        Args:
+            query: A instrução INSERT.
+            params: Parâmetros para substituir os '?' na query.
+
+        Returns:
+            int: ID auto-gerado da linha inserida.
+
+        Raises:
+            sqlite3.Error: Se a execução falhar (rollback automático via execute()).
+        """
+        cursor = self.execute(query, params)
+        return cursor.lastrowid        
 
     def execute(self, query: str, params: tuple = ()) -> sqlite3.Cursor:
        """
