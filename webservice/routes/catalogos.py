@@ -11,3 +11,11 @@ from database.connection import Database
 from database.init_db import DB_FILE
 
 catalogos_bp = Blueprint("catalogos", __name__, url_prefix="/api")
+
+def _listar(tabela: str, id_col: str) -> list[dict]:
+    """Helper genérico para listar registos de uma tabela de catálogo."""
+    with Database(str(DB_FILE)) as db:
+        rows = db.fetch_all(
+            f"SELECT {id_col}, nome FROM {tabela} ORDER BY nome COLLATE NOCASE;"
+        )
+    return [dict(r) for r in rows]
