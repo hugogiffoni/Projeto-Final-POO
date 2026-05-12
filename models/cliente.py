@@ -163,3 +163,6 @@ class Cliente:
         if self.id_cliente is not None and other.id_cliente is not None:
             return self.id_cliente == other.id_cliente
         return self._email == other.email and self.nome == other.nome
+    
+    def __hash__(self) -> int:
+        return hash((self.id_cliente, self._email))
