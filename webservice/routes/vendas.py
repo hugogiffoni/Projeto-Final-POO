@@ -14,7 +14,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
-from database.db import get_db
+from database import get_db
 from models.item_venda import ItemVenda
 from models.venda import Venda
 
