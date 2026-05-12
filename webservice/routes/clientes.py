@@ -49,3 +49,21 @@ def listar_clientes():
         return jsonify(clientes), 200
     finally:
         db.close()
+
+# ---------------------------------------------------------------------
+# GET /api/clientes/<id>  → obter um
+# ---------------------------------------------------------------------
+@clientes_bp.route("/<int:id_cliente>", methods=["GET"])
+def obter_cliente(id_cliente: int):
+    """Devolve um cliente específico pelo ID."""
+    db = _get_db()
+    try:
+        row = db.fetch_one(
+            "SELECT * FROM clientes WHERE id_cliente = ?", (id_cliente,)
+        )
+        if not row:
+            return jsonify({"erro": f"Cliente {id_cliente} não encontrado."}), 404
+
+        return jsonify(Cliente.from_dict(row).to_dict()), 200
+    finally:
+        db.close()        
