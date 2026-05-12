@@ -185,3 +185,70 @@ def _confirmar_apagar(jogo: dict) -> None:
                 .props("color=negative")
 
     dialog.open()    
+
+# ---------------------------------------------------------------- página
+def criar_pagina_jogos() -> None:
+    """Constrói a página completa de jogos."""
+    with ui.column().classes("w-full p-6 gap-4"):
+        # Cabeçalho
+        with ui.row().classes("w-full items-center"):
+            ui.label("🎮 Catálogo de Jogos").classes("text-3xl font-bold")
+            ui.space()
+            ui.button("Novo Jogo", icon="add",
+                      on_click=lambda: _dialog_jogo()) \
+                .props("color=primary")
+
+        # Pesquisa
+        with ui.row().classes("w-full items-center gap-2"):
+            estado.campo_pesquisa = ui.input(
+                placeholder="Pesquisar por título, criador, editora ou género...",
+            ).classes("flex-grow").props("clearable outlined dense")
+            estado.campo_pesquisa.on("update:model-value",
+                                     lambda _: _recarregar_tabela())
+            ui.button(icon="refresh", on_click=_recarregar_tabela) \
+                .props("flat round").tooltip("Recarregar")
+
+        # Tabela
+        colunas = [
+            {"name": "id_jogo", "label": "ID", "field": "id_jogo",
+             "align": "left", "sortable": True},
+            {"name": "titulo", "label": "Título", "field": "titulo",
+             "align": "left", "sortable": True},
+            {"name": "criador", "label": "Criador", "field": "criador",
+             "align": "left"},
+            {"name": "editora", "label": "Editora", "field": "editora",
+             "align": "left"},
+            {"name": "ano_lancamento", "label": "Ano", "field": "ano_lancamento",
+             "align": "center", "sortable": True},
+            {"name": "genero", "label": "Género", "field": "genero",
+             "align": "left"},
+            {"name": "idade_minima", "label": "Idade Mín.",
+             "field": "idade_minima", "align": "center"},
+            {"name": "preco_fmt", "label": "Preço", "field": "preco_fmt",
+             "align": "right", "sortable": True},
+            {"name": "acoes", "label": "Ações", "field": "acoes",
+             "align": "center"},
+        ]
+
+        estado.tabela = ui.table(
+            columns=colunas,
+            rows=[],
+            row_key="id_jogo",
+            pagination=10,
+        ).classes("w-full")
+
+        # Slot para botões de ação
+        estado.tabela.add_slot("body-cell-acoes", r"""
+            <q-td :props="props">
+                <q-btn flat dense round icon="edit" color="primary"
+                       @click="() => $parent.$emit('editar', props.row)" />
+                <q-btn flat dense round icon="delete" color="negative"
+                       @click="() => $parent.$emit('apagar', props.row)" />
+            </q-td>
+        """)
+
+        estado.tabela.on("editar", lambda e: _dialog_jogo(e.args))
+        estado.tabela.on("apagar", lambda e: _confirmar_apagar(e.args))
+
+    # Carregar dados iniciais
+    _recarregar_tabela()
