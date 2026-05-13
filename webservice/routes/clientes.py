@@ -96,8 +96,8 @@ def criar_cliente():
                     {"erro": f"Já existe um cliente com o email '{cliente.email}'."}
                 ), 409
 
-        # Insere na BD
-        novo_id = db.execute(
+        # Insere na BD e obtém o novo ID
+        novo_id = db.insert(
             """
             INSERT INTO clientes (nome, morada, telefone, email)
             VALUES (?, ?, ?, ?)
