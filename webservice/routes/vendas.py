@@ -10,19 +10,21 @@ Fluxo de uma venda:
         c) UPDATE em 'jogos' para descontar stock.
     4. COMMIT se tudo correu bem; ROLLBACK em qualquer erro.
 """
-from datetime import datetime
-
 from flask import Blueprint, jsonify, request
 
-from database import get_db
+from database.connection import Database
 from models.item_venda import ItemVenda
 from models.venda import Venda
+from webservice.config import Config
 
 vendas_bp = Blueprint("vendas", __name__, url_prefix="/api/vendas")
 
+# Caminho da BD (vem da config — mesmo padrão do health.py)
+DB_PATH = str(Config.DATABASE_PATH)
+
 
 # ---------------------------------------------------------------- helpers
-def _venda_row_to_dict(row, itens: list[dict]) -> dict:
+def _venda_row_to_dict(row: dict, itens: list[dict]) -> dict:
     """Converte uma linha da BD (cabeçalho) + lista de itens num dict completo."""
     return {
         "id_venda": row["id_venda"],
@@ -36,9 +38,9 @@ def _venda_row_to_dict(row, itens: list[dict]) -> dict:
     }
 
 
-def _carregar_itens(db, id_venda: int) -> list[dict]:
+def _carregar_itens(db: Database, id_venda: int) -> list[dict]:
     """Carrega todos os itens de uma venda, já com o título do jogo (JOIN)."""
-    rows = db.execute(
+    rows = db.fetch_all(
         """
         SELECT iv.id_item, iv.id_venda, iv.id_jogo, iv.quantidade,
                iv.preco_unitario, j.titulo
@@ -48,7 +50,7 @@ def _carregar_itens(db, id_venda: int) -> list[dict]:
          ORDER BY iv.id_item
         """,
         (id_venda,),
-    ).fetchall()
+    )
 
     return [
         {
@@ -98,10 +100,9 @@ def listar_vendas():
 
     sql += " ORDER BY v.data_hora DESC"
 
-    db = get_db()
-    rows = db.execute(sql, params).fetchall()
-
-    vendas = [_venda_row_to_dict(r, _carregar_itens(db, r["id_venda"])) for r in rows]
+    with Database(DB_PATH) as db:
+        rows = db.fetch_all(sql, tuple(params))
+        vendas = [_venda_row_to_dict(r, _carregar_itens(db, r["id_venda"])) for r in rows]
 
     return jsonify({"total": len(vendas), "vendas": vendas}), 200
 
@@ -110,22 +111,23 @@ def listar_vendas():
 @vendas_bp.route("/<int:id_venda>", methods=["GET"])
 def obter_venda(id_venda: int):
     """Devolve uma venda específica com todos os itens."""
-    db = get_db()
-    row = db.execute(
-        """
-        SELECT v.id_venda, v.id_cliente, v.data_hora, v.desconto, v.valor_total,
-               c.nome AS nome_cliente
-          FROM vendas v
-          JOIN clientes c ON c.id_cliente = v.id_cliente
-         WHERE v.id_venda = ?
-        """,
-        (id_venda,),
-    ).fetchone()
+    with Database(DB_PATH) as db:
+        row = db.fetch_one(
+            """
+            SELECT v.id_venda, v.id_cliente, v.data_hora, v.desconto, v.valor_total,
+                   c.nome AS nome_cliente
+              FROM vendas v
+              JOIN clientes c ON c.id_cliente = v.id_cliente
+             WHERE v.id_venda = ?
+            """,
+            (id_venda,),
+        )
 
-    if row is None:
-        return jsonify({"erro": "Venda não encontrada."}), 404
+        if row is None:
+            return jsonify({"erro": "Venda não encontrada."}), 404
 
-    itens = _carregar_itens(db, id_venda)
+        itens = _carregar_itens(db, id_venda)
+
     return jsonify(_venda_row_to_dict(row, itens)), 200
 
 
@@ -144,11 +146,6 @@ def criar_venda():
                 {"id_jogo": 7, "quantidade": 1}
             ]
         }
-
-    Notas:
-        - preco_unitario é obtido da BD (NUNCA confiar no que vem do cliente).
-        - Stock é validado e descontado automaticamente.
-        - Toda a operação é atómica (transação).
     """
     data = request.get_json(silent=True) or {}
 
@@ -167,97 +164,102 @@ def criar_venda():
     if not (0 <= desconto <= 100):
         return jsonify({"erro": "desconto tem de estar entre 0 e 100."}), 400
 
-    db = get_db()
+    with Database(DB_PATH) as db:
+        # 1) Verificar se o cliente existe
+        cliente = db.fetch_one(
+            "SELECT id_cliente, nome FROM clientes WHERE id_cliente = ?",
+            (id_cliente,),
+        )
+        if cliente is None:
+            return jsonify({"erro": f"Cliente {id_cliente} não existe."}), 404
 
-    # 1) Verificar se o cliente existe
-    cliente = db.execute(
-        "SELECT id_cliente, nome FROM clientes WHERE id_cliente = ?",
-        (id_cliente,),
-    ).fetchone()
-    if cliente is None:
-        return jsonify({"erro": f"Cliente {id_cliente} não existe."}), 404
+        # 2) Construir os ItemVenda a partir dos dados da BD (preço + stock)
+        venda = Venda(
+            id_cliente=id_cliente,
+            desconto=desconto,
+            nome_cliente=cliente["nome"],
+        )
 
-    # 2) Construir os ItemVenda a partir dos dados da BD (preço + stock)
-    venda = Venda(id_cliente=id_cliente, desconto=desconto,
-                  nome_cliente=cliente["nome"])
+        for raw in data["itens"]:
+            if "id_jogo" not in raw or "quantidade" not in raw:
+                return jsonify({"erro": "Cada item precisa de 'id_jogo' e 'quantidade'."}), 400
 
-    for raw in data["itens"]:
-        if "id_jogo" not in raw or "quantidade" not in raw:
-            return jsonify({"erro": "Cada item precisa de 'id_jogo' e 'quantidade'."}), 400
+            try:
+                id_jogo = int(raw["id_jogo"])
+                quantidade = int(raw["quantidade"])
+            except (TypeError, ValueError):
+                return jsonify({"erro": "id_jogo/quantidade inválidos."}), 400
 
-        try:
-            id_jogo = int(raw["id_jogo"])
-            quantidade = int(raw["quantidade"])
-        except (TypeError, ValueError):
-            return jsonify({"erro": "id_jogo/quantidade inválidos."}), 400
-
-        jogo = db.execute(
-            "SELECT id_jogo, titulo, preco, stock FROM jogos WHERE id_jogo = ?",
-            (id_jogo,),
-        ).fetchone()
-
-        if jogo is None:
-            return jsonify({"erro": f"Jogo {id_jogo} não existe."}), 404
-
-        if jogo["stock"] < quantidade:
-            return jsonify({
-                "erro": f"Stock insuficiente para '{jogo['titulo']}' "
-                        f"(pedido: {quantidade}, disponível: {jogo['stock']})."
-            }), 409
-
-        try:
-            item = ItemVenda(
-                id_jogo=jogo["id_jogo"],
-                quantidade=quantidade,
-                preco_unitario=jogo["preco"],
+            jogo = db.fetch_one(
+                "SELECT id_jogo, titulo, preco, stock FROM jogos WHERE id_jogo = ?",
+                (id_jogo,),
             )
-            venda.adicionar_item(item)
+
+            if jogo is None:
+                return jsonify({"erro": f"Jogo {id_jogo} não existe."}), 404
+
+            if jogo["stock"] < quantidade:
+                return jsonify({
+                    "erro": f"Stock insuficiente para '{jogo['titulo']}' "
+                            f"(pedido: {quantidade}, disponível: {jogo['stock']})."
+                }), 409
+
+            try:
+                item = ItemVenda(
+                    id_jogo=jogo["id_jogo"],
+                    quantidade=quantidade,
+                    preco_unitario=jogo["preco"],
+                )
+                venda.adicionar_item(item)
+            except ValueError as e:
+                return jsonify({"erro": str(e)}), 400
+
+        # 3) Validação final da venda
+        try:
+            venda.validar()
         except ValueError as e:
             return jsonify({"erro": str(e)}), 400
 
-    # 3) Validação final da venda
-    try:
-        venda.validar()
-    except ValueError as e:
-        return jsonify({"erro": str(e)}), 400
+        # 4) ⚡ TRANSAÇÃO ATÓMICA ⚡
+        # Nota: cada db.execute() já faz commit; em caso de exceção, faz rollback.
+        # Para máxima segurança, agrupamos tudo num try/except que faz rollback
+        # manual se algo falhar a meio.
+        try:
+            data_hora_str = venda.data_hora.strftime("%Y-%m-%d %H:%M:%S")
+            valor_total = venda.valor_total()
 
-    # 4) ⚡ TRANSAÇÃO ATÓMICA ⚡
-    try:
-        data_hora_str = venda.data_hora.strftime("%Y-%m-%d %H:%M:%S")
-        valor_total = venda.valor_total()
-
-        # 4a) Inserir cabeçalho
-        cursor = db.execute(
-            """
-            INSERT INTO vendas (id_cliente, data_hora, desconto, valor_total)
-            VALUES (?, ?, ?, ?)
-            """,
-            (id_cliente, data_hora_str, desconto, valor_total),
-        )
-        id_venda = cursor.lastrowid
-
-        # 4b) Inserir itens + descontar stock
-        for item in venda.itens:
-            db.execute(
+            # 4a) Inserir cabeçalho — usa o método insert() que devolve lastrowid
+            id_venda = db.insert(
                 """
-                INSERT INTO itens_venda (id_venda, id_jogo, quantidade, preco_unitario)
+                INSERT INTO vendas (id_cliente, data_hora, desconto, valor_total)
                 VALUES (?, ?, ?, ?)
                 """,
-                (id_venda, item.id_jogo, item.quantidade, item.preco_unitario),
-            )
-            db.execute(
-                "UPDATE jogos SET stock = stock - ? WHERE id_jogo = ?",
-                (item.quantidade, item.id_jogo),
+                (id_cliente, data_hora_str, desconto, valor_total),
             )
 
-        db.commit()  # ✅ Tudo OK!
+            # 4b) Inserir itens + descontar stock
+            for item in venda.itens:
+                db.execute(
+                    """
+                    INSERT INTO itens_venda (id_venda, id_jogo, quantidade, preco_unitario)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (id_venda, item.id_jogo, item.quantidade, item.preco_unitario),
+                )
+                db.execute(
+                    "UPDATE jogos SET stock = stock - ? WHERE id_jogo = ?",
+                    (item.quantidade, item.id_jogo),
+                )
 
-    except Exception as e:
-        db.rollback()  # ❌ Algo falhou — desfaz tudo
-        return jsonify({"erro": f"Erro ao registar venda: {e}"}), 500
+        except Exception as e:
+            # O execute() já faz rollback interno, mas garantimos por segurança
+            if db.connection is not None:
+                db.connection.rollback()
+            return jsonify({"erro": f"Erro ao registar venda: {e}"}), 500
 
-    # 5) Devolver a venda completa recém-criada
-    itens_persistidos = _carregar_itens(db, id_venda)
+        # 5) Devolver a venda completa recém-criada
+        itens_persistidos = _carregar_itens(db, id_venda)
+
     resposta = {
         "id_venda": id_venda,
         "id_cliente": id_cliente,
@@ -276,39 +278,36 @@ def criar_venda():
 def anular_venda(id_venda: int):
     """
     Anula uma venda e DEVOLVE o stock dos jogos.
-
-    Útil para correção de erros do call center.
-    Operação também atómica.
+    Operação atómica.
     """
-    db = get_db()
+    with Database(DB_PATH) as db:
+        # Verificar se existe
+        venda = db.fetch_one(
+            "SELECT id_venda FROM vendas WHERE id_venda = ?", (id_venda,)
+        )
+        if venda is None:
+            return jsonify({"erro": "Venda não encontrada."}), 404
 
-    # Verificar se existe
-    venda = db.execute(
-        "SELECT id_venda FROM vendas WHERE id_venda = ?", (id_venda,)
-    ).fetchone()
-    if venda is None:
-        return jsonify({"erro": "Venda não encontrada."}), 404
+        # Buscar itens para devolver stock
+        itens = db.fetch_all(
+            "SELECT id_jogo, quantidade FROM itens_venda WHERE id_venda = ?",
+            (id_venda,),
+        )
 
-    # Buscar itens para devolver stock
-    itens = db.execute(
-        "SELECT id_jogo, quantidade FROM itens_venda WHERE id_venda = ?",
-        (id_venda,),
-    ).fetchall()
-
-    try:
-        # Devolver stock
-        for it in itens:
-            db.execute(
-                "UPDATE jogos SET stock = stock + ? WHERE id_jogo = ?",
-                (it["quantidade"], it["id_jogo"]),
-            )
-        # Apagar itens e venda (ON DELETE CASCADE também faria, mas explicitar é mais seguro)
-        db.execute("DELETE FROM itens_venda WHERE id_venda = ?", (id_venda,))
-        db.execute("DELETE FROM vendas WHERE id_venda = ?", (id_venda,))
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        return jsonify({"erro": f"Erro ao anular venda: {e}"}), 500
+        try:
+            # Devolver stock
+            for it in itens:
+                db.execute(
+                    "UPDATE jogos SET stock = stock + ? WHERE id_jogo = ?",
+                    (it["quantidade"], it["id_jogo"]),
+                )
+            # Apagar itens e venda
+            db.execute("DELETE FROM itens_venda WHERE id_venda = ?", (id_venda,))
+            db.execute("DELETE FROM vendas WHERE id_venda = ?", (id_venda,))
+        except Exception as e:
+            if db.connection is not None:
+                db.connection.rollback()
+            return jsonify({"erro": f"Erro ao anular venda: {e}"}), 500
 
     return jsonify({"mensagem": f"Venda {id_venda} anulada e stock reposto."}), 200
 
@@ -318,30 +317,29 @@ def anular_venda(id_venda: int):
 def historico_cliente(id_cliente: int):
     """
     Histórico de vendas de um cliente específico.
-    Requisito explícito do briefing: "Visualização do histórico de vendas de um cliente."
+    Requisito explícito do briefing.
     """
-    db = get_db()
+    with Database(DB_PATH) as db:
+        cliente = db.fetch_one(
+            "SELECT id_cliente, nome FROM clientes WHERE id_cliente = ?",
+            (id_cliente,),
+        )
+        if cliente is None:
+            return jsonify({"erro": "Cliente não encontrado."}), 404
 
-    cliente = db.execute(
-        "SELECT id_cliente, nome FROM clientes WHERE id_cliente = ?",
-        (id_cliente,),
-    ).fetchone()
-    if cliente is None:
-        return jsonify({"erro": "Cliente não encontrado."}), 404
+        rows = db.fetch_all(
+            """
+            SELECT v.id_venda, v.id_cliente, v.data_hora, v.desconto, v.valor_total,
+                   c.nome AS nome_cliente
+              FROM vendas v
+              JOIN clientes c ON c.id_cliente = v.id_cliente
+             WHERE v.id_cliente = ?
+             ORDER BY v.data_hora DESC
+            """,
+            (id_cliente,),
+        )
 
-    rows = db.execute(
-        """
-        SELECT v.id_venda, v.id_cliente, v.data_hora, v.desconto, v.valor_total,
-               c.nome AS nome_cliente
-          FROM vendas v
-          JOIN clientes c ON c.id_cliente = v.id_cliente
-         WHERE v.id_cliente = ?
-         ORDER BY v.data_hora DESC
-        """,
-        (id_cliente,),
-    ).fetchall()
-
-    vendas = [_venda_row_to_dict(r, _carregar_itens(db, r["id_venda"])) for r in rows]
+        vendas = [_venda_row_to_dict(r, _carregar_itens(db, r["id_venda"])) for r in rows]
 
     total_gasto = round(sum(v["valor_total"] for v in vendas), 2)
 
