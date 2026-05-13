@@ -12,6 +12,7 @@ from gui.paginas.home import criar_pagina_home
 from gui.paginas.clientes import criar_pagina_clientes
 from gui.paginas.jogos import criar_pagina_jogos
 from gui.paginas.nova_venda import criar_pagina_nova_venda
+from gui.paginas.historico import criar_pagina_historico
 
 
 # ---------------------------------------------------------------- layout
@@ -64,7 +65,7 @@ def pagina_nova_venda() -> None:
 @ui.page("/historico")
 def pagina_historico() -> None:
     cabecalho()
-    ui.label("📊 Histórico — em construção").classes("text-2xl p-8")     
+    criar_pagina_historico()
 
 # ---------------------------------------------------------------- arranque
 if __name__ in {"__main__", "__mp_main__"}:
